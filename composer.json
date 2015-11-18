@@ -1,10 +1,12 @@
 {
-    "name"       : "protobuf-php/protobuf-plugin",
-    "description": "PHP Code generator plugin from Google's Protocol Buffers",
-    "keywords"   : ["protobuf", "protocol buffer", "serializing"],
-    "homepage"   : "https://github.com/protobuf-php/protobuf-plugin",
-    "type"       : "library",
-    "license"    : "MIT",
+    "name"              : "protobuf-php/protobuf-plugin",
+    "description"       : "PHP Code generator plugin from Google's Protocol Buffers",
+    "keywords"          : ["protobuf", "protocol buffer", "serializing"],
+    "homepage"          : "https://github.com/protobuf-php/protobuf-plugin",
+    "type"              : "library",
+    "license"           : "MIT",
+    "minimum-stability" : "dev",
+    "prefer-stable"     : true,
     "authors"    : [
         {
             "name"    : "Fabio B. Silva",
