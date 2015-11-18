@@ -1,0 +1,50 @@
+{
+    "name"       : "protobuf-php/protobuf-plugin",
+    "description": "PHP Code generator plugin from Google's Protocol Buffers",
+    "keywords"   : ["protobuf", "protocol buffer", "serializing"],
+    "homepage"   : "https://github.com/protobuf-php/protobuf-plugin",
+    "type"       : "library",
+    "license"    : "MIT",
+    "authors"    : [
+        {
+            "name"    : "Fabio B. Silva",
+            "email"   : "fabio.bat.silva@gmail.com",
+            "homepage": "https://github.com/FabioBatSilva"
+        }
+    ],
+    "bin"        : ["bin/protobuf", "bin/protobuf-plugin"],
+    "require"    : {
+        "php"                                : ">=5.5.0",
+        "protobuf-php/protobuf"              : "~1.0@dev",
+        "protobuf-php/google-protobuf-proto" : "~1.0@dev",
+        "symfony/console"                    : "^2.5",
+        "symfony/process"                    : "^2.5",
+        "doctrine/inflector"                 : "^1",
+        "zendframework/zend-code"            : "^2.6-dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit"                       : "~4",
+        "mikey179/vfsStream"                    : "~1",
+        "instaclick/coding-standard"            : "~1.1",
+        "squizlabs/php_codesniffer"             : "~1.5",
+        "satooshi/php-coveralls"                : "~0.6",
+        "php-mock/php-mock-phpunit"             : "^0.2",
+        "instaclick/object-calisthenics-sniffs" : "dev-master",
+        "instaclick/symfony2-coding-standard"   : "dev-remaster"
+    },
+    "autoload"   : {
+        "psr-4": {
+            "Protobuf\\Compiler\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ProtobufCompilerTest\\": "tests"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
+    }
+}
