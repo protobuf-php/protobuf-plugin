@@ -14,7 +14,7 @@
             "homepage": "https://github.com/FabioBatSilva"
         }
     ],
-    "bin"        : ["bin/protobuf", "bin/protobuf-plugin"],
+    "bin"        : ["bin/protobuf"],
     "require"    : {
         "php"                                : ">=5.5.0",
         "protobuf-php/protobuf"              : "~1.0@dev",
