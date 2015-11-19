@@ -29,16 +29,14 @@ class PluginCommandTest extends TestCase
             ->willReturn('bin-response');
 
         $mock = $this->getMockBuilder(PluginCommand::CLASS)
-            ->setMethods(['createCompiler', 'createStream'])
+            ->setMethods(['createCompiler'])
             ->getMock();
+
+        $mock->setStream($streamIn);
 
         $mock->expects($this->once())
             ->method('createCompiler')
             ->willReturn($compiler);
-
-        $mock->expects($this->once())
-            ->method('createStream')
-            ->willReturn($streamIn);
 
         $compiler->expects($this->once())
             ->method('compile')
@@ -57,34 +55,16 @@ class PluginCommandTest extends TestCase
         $this->assertEquals('bin-response', $commandTester->getDisplay());
     }
 
+    /**
+     * @expectedException RuntimeException
+     * @expectedExceptionMessage Unable to read standard input
+     */
     public function testExecuteException()
     {
         $application = new Application();
-        $exception   = new \Exception('Test exception message');
-        $compiler    = $this->getMockBuilder('Protobuf\Compiler\Compiler')
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $streamIn = $this->getMockBuilder('Protobuf\Stream')
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $mock = $this->getMockBuilder(PluginCommand::CLASS)
+        $mock        = $this->getMockBuilder(PluginCommand::CLASS)
             ->setMethods(['createCompiler', 'createStream'])
             ->getMock();
-
-        $mock->expects($this->once())
-            ->method('createCompiler')
-            ->willReturn($compiler);
-
-        $mock->expects($this->once())
-            ->method('createStream')
-            ->willReturn($streamIn);
-
-        $compiler->expects($this->once())
-            ->method('compile')
-            ->with($this->equalTo($streamIn))
-            ->will($this->throwException($exception));
 
         $application->add($mock);
 
@@ -92,16 +72,6 @@ class PluginCommandTest extends TestCase
         $commandTester = new CommandTester($command);
 
         $commandTester->execute([]);
-
-        $this->assertContains('Test exception message', $commandTester->getDisplay());
-    }
-
-    public function testCreateStream()
-    {
-        $command  = new PluginCommand();
-        $compiler = $this->invokeMethod($command, 'createStream');
-
-        $this->assertInstanceOf('Protobuf\Stream', $compiler);
     }
 
     public function testCreateProcessBuilder()

@@ -4,6 +4,8 @@ namespace ProtobufCompilerTest;
 
 use ProtobufCompilerTest\TestCase;
 use Protobuf\Compiler\Command\Application;
+use Protobuf\Compiler\Command\PluginCommand;
+use Protobuf\Compiler\Command\GenerateCommand;
 
 class ApplicationTest extends TestCase
 {
@@ -26,11 +28,11 @@ class ApplicationTest extends TestCase
     {
         $this->input   = $this->getMock('Symfony\Component\Console\Input\InputInterface');
 
-        $this->generateCommand = $this->getMockBuilder('Symfony\Component\Console\Command\Command')
+        $this->generateCommand = $this->getMockBuilder(GenerateCommand::CLASS)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->pluginCommand = $this->getMockBuilder('Symfony\Component\Console\Command\Command')
+        $this->pluginCommand = $this->getMockBuilder(PluginCommand::CLASS)
             ->disableOriginalConstructor()
             ->getMock();
     }

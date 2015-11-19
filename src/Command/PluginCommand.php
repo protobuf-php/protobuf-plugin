@@ -2,8 +2,10 @@
 
 namespace Protobuf\Compiler\Command;
 
-use Psr\Log\LogLevel;
+use Exception;
+use RuntimeException;
 use Protobuf\Stream;
+use Psr\Log\LogLevel;
 use Protobuf\Compiler\Compiler;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
@@ -19,6 +21,20 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class PluginCommand extends Command
 {
+
+    /**
+     * @var \Protobuf\Stream
+     */
+    private $stream;
+
+    /**
+     * @param \Protobuf\Stream $stream
+     */
+    public function setStream(Stream $stream)
+    {
+        $this->stream = $stream;
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -34,33 +50,14 @@ class PluginCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        try {
-            // compile data from stdin
-            // Create a compiler interface
-            $stream   = $this->createStream();
-            $compiler = $this->createCompiler($output);
-            $response = $compiler->compile($stream);
-
-            $output->write((string) $response);
-
-            return 0;
-        } catch (\Exception $e) {
-            $output->writeln('<error>' . $e->getMessage() . '</error>');
-            $output->writeln($e->getTraceAsString());
-
-            return 255;
+        if ($this->stream === null) {
+            throw new RuntimeException("Unable to read standard input.");
         }
-    }
 
-    /**
-     * @return \Protobuf\Stream
-     */
-    protected function createStream()
-    {
-        $handle = fopen('php://stdin', 'r');
-        $stream = new Stream($handle);
+        $compiler = $this->createCompiler($output);
+        $response = $compiler->compile($this->stream);
 
-        return $stream;
+        $output->write((string) $response);
     }
 
     /**

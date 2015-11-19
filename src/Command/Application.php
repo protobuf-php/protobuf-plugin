@@ -2,6 +2,7 @@
 
 namespace Protobuf\Compiler\Command;
 
+use Protobuf\Stream;
 use Symfony\Component\Console\Application as SymfonyApplication;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Command\Command;
@@ -42,7 +43,12 @@ class Application extends SymfonyApplication
      */
     protected function getCommandName(InputInterface $input)
     {
-        return $this->hasStdin()
+        $stream   = $this->getStdinStream();
+        $hasStdin = $stream->getSize() > 0;
+
+        $this->pluginCommand->setStream($stream);
+
+        return $hasStdin
             ? $this->pluginCommand->getName()
             : $this->generateCommand->getName();
     }
@@ -72,24 +78,32 @@ class Application extends SymfonyApplication
     }
 
     /**
-     * @return bool
+     * @return \Protobuf\Stream
      */
-    protected function hasStdin()
+    protected function getStdinStream()
     {
-        $stdin = fopen('php://stdin', 'r');
+        stream_set_blocking(STDIN, false);
 
-        if ( ! is_resource($stdin)) {
-            return false;
+        // Loop until STDIN is closed or we've waited too long for data
+        $counter = 0;
+        $stream  = Stream::create();
+
+        while ( ! feof(STDIN) && ($counter++ < 10)) {
+
+            $buffer = fread(STDIN, 1024);
+            $length = mb_strlen($buffer);
+
+            if ($length > 0) {
+                $stream->write($buffer, $length);
+
+                continue;
+            }
+
+            usleep(1000);
         }
 
-        $stats = fstat($stdin);
+        $stream->seek(0);
 
-        fclose($stdin);
-
-        if ( ! isset($stats['size'])) {
-            return false;
-        }
-
-        return ($stats['size'] > 0);
+        return $stream;
     }
 }
