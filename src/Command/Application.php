@@ -82,16 +82,16 @@ class Application extends SymfonyApplication
      */
     protected function getStdinStream()
     {
-        stream_set_blocking(STDIN, false);
-
-        // Loop until STDIN is closed or we've waited too long for data
-        $counter = 0;
+        $handle  = fopen('php://stdin', 'r');
         $stream  = Stream::create();
+        $counter = 0;
 
-        while ( ! feof(STDIN) && ($counter++ < 10)) {
+        stream_set_blocking($handle, false);
 
-            $buffer = fread(STDIN, 1024);
-            $length = mb_strlen($buffer);
+        while ( ! feof($handle) && ($counter++ < 10)) {
+
+            $buffer = fread($handle, 1024);
+            $length = strlen($buffer);
 
             if ($length > 0) {
                 $stream->write($buffer, $length);
@@ -103,6 +103,7 @@ class Application extends SymfonyApplication
         }
 
         $stream->seek(0);
+        fclose($handle);
 
         return $stream;
     }
