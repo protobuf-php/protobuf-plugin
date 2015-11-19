@@ -55,7 +55,6 @@ class ProcessBuilderTest extends TestCase
         $this->assertStringEndsWith("'vfs://root/proto/file.proto'", $command);
         $this->assertContains('--plugin=protoc-gen-php=vfs://root/plugin', $command);
         $this->assertContains('--php_out=verbose=1:vfs://root/php-src', $command);
-        $this->assertContains('--proto_path=vfs://root/proto', $command);
     }
 
     public function testCreateProtocVersionProcess()
@@ -275,7 +274,8 @@ class ProcessBuilderTest extends TestCase
         }
 
         $mock = $this->getMockBuilder('SplFileInfo')
-            ->disableOriginalConstructor()
+            ->setConstructorArgs([$realpath])
+            ->setMethods(['getPathname', 'getRealPath'])
             ->getMock();
 
         $mock
