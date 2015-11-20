@@ -1,6 +1,9 @@
 Protobuf for PHP
 ================
 
+[![Build Status](https://travis-ci.org/protobuf-php/protobuf-plugin.svg?branch=master)](https://travis-ci.org/protobuf-php/protobuf-plugin)
+[![Coverage Status](https://coveralls.io/repos/protobuf-php/protobuf-plugin/badge.svg?branch=master&service=github)](https://coveralls.io/github/protobuf-php/protobuf-plugin?branch=master)
+
 Protobuf for PHP is an implementation of Google's Protocol Buffers for the PHP
 language, supporting its binary data serialization and including a `protoc`
 plugin to generate PHP classes from .proto files.
