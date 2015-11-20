@@ -808,90 +808,120 @@ class Simple extends \Protobuf\AbstractMessage
             }
 
             if ($tag === 1) {
+                \Protobuf\WireFormat::assertWireType($wire, 1);
+
                 $this->double = $reader->readDouble($stream);
 
                 continue;
             }
 
             if ($tag === 2) {
+                \Protobuf\WireFormat::assertWireType($wire, 2);
+
                 $this->float = $reader->readFloat($stream);
 
                 continue;
             }
 
             if ($tag === 3) {
+                \Protobuf\WireFormat::assertWireType($wire, 3);
+
                 $this->int64 = $reader->readVarint($stream);
 
                 continue;
             }
 
             if ($tag === 4) {
+                \Protobuf\WireFormat::assertWireType($wire, 4);
+
                 $this->uint64 = $reader->readVarint($stream);
 
                 continue;
             }
 
             if ($tag === 5) {
+                \Protobuf\WireFormat::assertWireType($wire, 5);
+
                 $this->int32 = $reader->readVarint($stream);
 
                 continue;
             }
 
             if ($tag === 6) {
+                \Protobuf\WireFormat::assertWireType($wire, 6);
+
                 $this->fixed64 = $reader->readFixed64($stream);
 
                 continue;
             }
 
             if ($tag === 7) {
+                \Protobuf\WireFormat::assertWireType($wire, 7);
+
                 $this->fixed32 = $reader->readFixed32($stream);
 
                 continue;
             }
 
             if ($tag === 8) {
+                \Protobuf\WireFormat::assertWireType($wire, 8);
+
                 $this->bool = $reader->readBool($stream);
 
                 continue;
             }
 
             if ($tag === 9) {
+                \Protobuf\WireFormat::assertWireType($wire, 9);
+
                 $this->string = $reader->readString($stream);
 
                 continue;
             }
 
             if ($tag === 12) {
+                \Protobuf\WireFormat::assertWireType($wire, 12);
+
                 $this->bytes = $reader->readBytes($stream);
 
                 continue;
             }
 
             if ($tag === 13) {
+                \Protobuf\WireFormat::assertWireType($wire, 13);
+
                 $this->uint32 = $reader->readVarint($stream);
 
                 continue;
             }
 
             if ($tag === 15) {
+                \Protobuf\WireFormat::assertWireType($wire, 15);
+
                 $this->sfixed32 = $reader->readSFixed32($stream);
 
                 continue;
             }
 
             if ($tag === 16) {
+                \Protobuf\WireFormat::assertWireType($wire, 16);
+
                 $this->sfixed64 = $reader->readSFixed64($stream);
 
                 continue;
             }
 
             if ($tag === 17) {
+                \Protobuf\WireFormat::assertWireType($wire, 17);
+
                 $this->sint32 = $reader->readZigzag($stream);
 
                 continue;
             }
 
             if ($tag === 18) {
+                \Protobuf\WireFormat::assertWireType($wire, 18);
+
                 $this->sint64 = $reader->readZigzag($stream);
 
                 continue;

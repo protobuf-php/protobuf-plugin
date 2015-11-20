@@ -193,7 +193,6 @@ class ReadFromMethodBodyGenerator extends BaseGenerator
             return $body;
         }
 
-        $body[] = null;
         $body[] = 'if ($this->' . $name . ' === null) {';
         $body[] = '    $this->' . $name . ' = new \Protobuf\ScalarCollection();';
         $body[] = '}';

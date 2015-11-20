@@ -42,6 +42,8 @@ class ReadFromMethodBodyGeneratorTest extends TestCase
 
         $actual   = $this->invokeMethod($generator, 'generateFieldReadStatement', [$field]);
         $expected = <<<'CODE'
+\Protobuf\WireFormat::assertWireType($wire, 5);
+
 $this->count = $reader->readVarint($stream);
 
 continue;
@@ -63,6 +65,7 @@ CODE;
 
         $actual   = $this->invokeMethod($generator, 'generateFieldReadStatement', [$field]);
         $expected = <<<'CODE'
+\Protobuf\WireFormat::assertWireType($wire, 5);
 
 if ($this->lines === null) {
     $this->lines = new \Protobuf\ScalarCollection();
@@ -124,6 +127,8 @@ CODE;
 
         $actual   = $this->invokeMethod($generator, 'generateFieldReadStatement', [$field]);
         $expected = <<<'CODE'
+\Protobuf\WireFormat::assertWireType($wire, 11);
+
 $innerSize  = $reader->readVarint($stream);
 $innerMessage = new \ProtobufCompiler\Proto\PhoneNumber();
 
@@ -153,6 +158,8 @@ CODE;
 
         $actual   = $this->invokeMethod($generator, 'generateFieldReadStatement', [$field]);
         $expected = <<<'CODE'
+\Protobuf\WireFormat::assertWireType($wire, 11);
+
 $innerSize    = $reader->readVarint($stream);
 $innerMessage = new \ProtobufCompiler\Proto\File();
 
@@ -210,6 +217,7 @@ while ($limit === null || $stream->tell() < $limit) {
     }
 
     if ($tag === 1) {
+        \Protobuf\WireFormat::assertWireType($wire, 5);
 
         if ($this->lines === null) {
             $this->lines = new \Protobuf\ScalarCollection();

@@ -194,12 +194,16 @@ class PhoneNumber extends \Protobuf\AbstractMessage
             }
 
             if ($tag === 1) {
+                \Protobuf\WireFormat::assertWireType($wire, 9);
+
                 $this->number = $reader->readString($stream);
 
                 continue;
             }
 
             if ($tag === 2) {
+                \Protobuf\WireFormat::assertWireType($wire, 14);
+
                 $this->type = \ProtobufTest\Protos\Person\PhoneType::valueOf($reader->readVarint($stream));
 
                 continue;
