@@ -122,8 +122,8 @@ class ReadFromMethodBodyGenerator extends BaseGenerator
         }
 
         if ( ! $isPack) {
-            // $body[] = sprintf('\Protobuf\WireFormat::assertWireType($wire, %s);', $type);
-            // $body[] = null;
+            $body[] = sprintf('\Protobuf\WireFormat::assertWireType($wire, %s);', $type->value());
+            $body[] = null;
         }
 
         if ($rule === Label::LABEL_REPEATED() && $isPack) {
