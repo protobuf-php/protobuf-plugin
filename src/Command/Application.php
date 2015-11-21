@@ -91,7 +91,7 @@ class Application extends SymfonyApplication
         while ( ! feof($handle) && ($counter++ < 10)) {
 
             $buffer = fread($handle, 1024);
-            $length = strlen($buffer);
+            $length = mb_strlen($buffer, '8bit');
 
             if ($length > 0) {
                 $stream->write($buffer, $length);
