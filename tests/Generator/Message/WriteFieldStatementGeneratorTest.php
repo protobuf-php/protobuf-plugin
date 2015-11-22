@@ -152,6 +152,28 @@ CODE;
         $this->assertEquals($expected, implode(PHP_EOL, $actual));
     }
 
+    public function testGenerateWriteInt32FromVariableStatement()
+    {
+        $proto     = new DescriptorProto();
+        $field     = new FieldDescriptorProto();
+        $generator = new WriteFieldStatementGenerator($proto, $this->options, $this->package);
+
+        $generator->setTargetVar('$count');
+
+        $field->setNumber(1);
+        $field->setName('count');
+        $field->setType(FieldDescriptorProto\Type::TYPE_INT32());
+        $field->setLabel(FieldDescriptorProto\Label::LABEL_REQUIRED());
+
+        $actual   =  $generator->generateFieldWriteStatement($field);
+        $expected = <<<'CODE'
+$writer->writeVarint($stream, 8);
+$writer->writeVarint($stream, $count);
+CODE;
+
+        $this->assertEquals($expected, implode(PHP_EOL, $actual));
+    }
+
     /**
      * @expectedException InvalidArgumentException
      * @expectedExceptionMessage Unknown field type : -123

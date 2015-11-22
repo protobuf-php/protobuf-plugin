@@ -179,6 +179,32 @@ CODE;
         $this->assertEquals($expected, implode(PHP_EOL, $actual));
     }
 
+    public function testGenerateReadInt32IntoVariableStatement()
+    {
+        $proto     = new DescriptorProto();
+        $field     = new FieldDescriptorProto();
+        $generator = new ReadFieldStatementGenerator($proto, $this->options, $this->package);
+
+        $generator->setTargetVar('$count');
+        $generator->setBreakMode(ReadFieldStatementGenerator::BREAK_MODE_RETURN);
+
+        $field->setNumber(1);
+        $field->setName('count');
+        $field->setType(FieldDescriptorProto\Type::TYPE_INT32());
+        $field->setLabel(FieldDescriptorProto\Label::LABEL_REQUIRED());
+
+        $actual   = $generator->generateFieldReadStatement($field);
+        $expected = <<<'CODE'
+\Protobuf\WireFormat::assertWireType($wire, 5);
+
+$count = $reader->readVarint($stream);
+
+return $count;
+CODE;
+
+        $this->assertEquals($expected, implode(PHP_EOL, $actual));
+    }
+
     /**
      * @expectedException InvalidArgumentException
      * @expectedExceptionMessage Unknown field type : -123
