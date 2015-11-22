@@ -247,18 +247,23 @@ class BaseGenerator
 
     /**
      * @param \google\protobuf\DescriptorProto $descriptor
+     * @param string                           $default
      *
      * @return string
      */
-    protected function getUnknownFieldSetName(DescriptorProto $descriptor)
+    protected function getUniqueFieldName(DescriptorProto $descriptor, $default)
     {
-        $fields  = $descriptor->getFieldList() ?: [];
-        $default = 'unknownFieldSet';
-        $name    = $default;
-        $names   = [];
-        $count   = 0;
+        $extensions = $descriptor->getExtensionList() ?: [];
+        $fields     = $descriptor->getFieldList() ?: [];
+        $name       = $default;
+        $names      = [];
+        $count      = 0;
 
         foreach ($fields as $field) {
+            $names[$field->getName()] = true;
+        }
+
+        foreach ($extensions as $field) {
             $names[$field->getName()] = true;
         }
 

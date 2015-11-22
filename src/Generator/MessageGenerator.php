@@ -18,6 +18,8 @@ use Zend\Code\Generator\DocBlockGenerator;
 use Zend\Code\Generator\PropertyGenerator;
 use Zend\Code\Generator\ParameterGenerator;
 
+use Protobuf\Compiler\Generator\Message\AnnotationGenerator;
+use Protobuf\Compiler\Generator\Message\ExtensionMethodBodyGenerator;
 use Protobuf\Compiler\Generator\Message\WriteToMethodBodyGenerator;
 use Protobuf\Compiler\Generator\Message\ReadFromMethodBodyGenerator;
 use Protobuf\Compiler\Generator\Message\ToStreamMethodBodyGenerator;
@@ -40,7 +42,7 @@ class MessageGenerator extends BaseGenerator
         $name             = $this->proto->getName();
         $namespace        = trim($this->getNamespace($this->package), '\\');
         $shortDescription = 'Protobuf message : ' . $this->proto->getName();
-        $longDescription  = implode(PHP_EOL, $this->generateMessageAnnotation());
+        $longDescription  = $this->generateMessageAnnotation();
         $class            = ClassGenerator::fromArray([
             'name'          => $name,
             'namespacename' => $namespace,
@@ -57,13 +59,23 @@ class MessageGenerator extends BaseGenerator
     }
 
     /**
+     * @return string
+     */
+    protected function generateMessageAnnotation()
+    {
+        $generator  = new AnnotationGenerator($this->proto, $this->options, $this->package);
+        $annotation = implode(PHP_EOL, $generator->generateAnnotation());
+
+        return $annotation;
+    }
+
+    /**
      * @return string[]
      */
     public function generateFields()
     {
-        $fields  = [];
         $unknown = PropertyGenerator::fromArray([
-            'name'       => $this->getUnknownFieldSetName($this->proto),
+            'name'       => $this->getUniqueFieldName($this->proto, 'unknownFieldSet'),
             'visibility' => PropertyGenerator::VISIBILITY_PROTECTED,
             'docblock'   => [
                 'tags'   => [
@@ -75,7 +87,27 @@ class MessageGenerator extends BaseGenerator
             ]
         ]);
 
+        $extensions = PropertyGenerator::fromArray([
+            'name'       => $this->getUniqueFieldName($this->proto, 'extensions'),
+            'visibility' => PropertyGenerator::VISIBILITY_PROTECTED,
+            'docblock'   => [
+                'tags'   => [
+                    [
+                        'name'        => 'var',
+                        'description' => '\Protobuf\ExtensionFieldMap',
+                    ]
+                ]
+            ]
+        ]);
+
+        $fields = [];
+
+        foreach (($this->proto->getExtensionList() ?: []) as $field) {
+            $fields[] = $this->generateExtensionField($field);
+        }
+
         $fields[] = $unknown;
+        $fields[] = $extensions;
 
         foreach (($this->proto->getFieldList() ?: []) as $field) {
             $fields[] = $this->generateField($field);
@@ -116,86 +148,35 @@ class MessageGenerator extends BaseGenerator
     }
 
     /**
-     * @return string[]
-     */
-    public function generateMessageAnnotation()
-    {
-        $package = json_encode($this->package);
-        $name    = json_encode($this->proto->getName());
-
-        $lines[] = "@\Protobuf\Annotation\Descriptor(";
-        $lines[] = "  name=$name,";
-        $lines[] = "  package=$package,";
-        $lines[] = "  fields={";
-
-        foreach (($this->proto->getFieldList() ?: []) as $field) {
-            $annot = $this->generateFieldAnnotation($field);
-            $annot = $this->addIndentation($annot, 2, '  ');
-            $lines = array_merge($lines, $annot);
-        }
-
-        $index = count($lines) -1;
-        $value = $lines[$index];
-
-        $lines[$index] = trim($value, ',');
-
-        $lines[] = "  }";
-        $lines[] = ")";
-
-        return $lines;
-    }
-
-    /**
      * @param \google\protobuf\FieldDescriptorProto $field
      *
-     * @return string[]
+     * @return string
      */
-    public function generateFieldAnnotation(FieldDescriptorProto $field)
+    public function generateExtensionField(FieldDescriptorProto $field)
     {
-        $lines     = [];
-        $type      = $field->getType();
-        $name      = $field->getName();
-        $label     = $field->getLabel();
-        $number    = $field->getNumber();
-        $options   = $field->getOptions();
-        $reference = $field->getTypeName();
-        $default   = $field->getDefaultValue();
-        $isPack    = $options ? $options->getPacked() : false;
+        $name     = $field->getName();
+        $number   = $field->getNumber();
+        $docBlock = $this->getDocBlockType($field);
+        $type     = $this->getFieldTypeName($field);
+        $label    = $this->getFieldLabelName($field);
+        $property = PropertyGenerator::fromArray([
+            'static'       => true,
+            'name'         => $name,
+            'visibility'   => PropertyGenerator::VISIBILITY_PROTECTED,
+            'docblock'     => [
+                'shortDescription' => "Extension field : $name $label $type = $number",
+                'tags'             => [
+                    [
+                        'name'        => 'var',
+                        'description' => '\Protobuf\Extension',
+                    ]
+                ]
+            ]
+        ]);
 
-        $tags    = [];
-        $mapping = [
-            'name'   => $name,
-            'tag'    => $number,
-            'type'   => $type->value(),
-            'label'  => $label->value(),
-        ];
+        $property->getDocblock()->setWordWrap(false);
 
-        if ($default) {
-            $mapping['default'] = $default;
-        }
-
-        if ($isPack) {
-            $mapping['pack'] = $isPack;
-        }
-
-        if ($reference) {
-            $mapping['reference'] = trim($reference, '.');
-        }
-
-        foreach ($mapping as $key => $value) {
-            $tags[] = "$key=" . json_encode($value) . ',';
-        }
-
-        $index = count($tags) -1;
-        $value = $tags[$index];
-
-        $tags[$index] = trim($value, ',');
-
-        $lines   = ['@\Protobuf\Annotation\Field('];
-        $lines   = array_merge($lines, $this->addIndentation($tags, 1, '  '));
-        $lines[] = '),';
-
-        return $lines;
+        return $property;
     }
 
     /**
@@ -203,6 +184,7 @@ class MessageGenerator extends BaseGenerator
      */
     public function generateMethods()
     {
+        $extensions  = $this->generateExtensionMethods();
         $constructor = $this->generateConstructorMethod();
         $accessors   = $this->generateGetterAndSetterMethods();
         $methods     = [];
@@ -211,9 +193,10 @@ class MessageGenerator extends BaseGenerator
             $methods[] = $constructor;
         }
 
-        $methods = array_merge($methods, $accessors);
+        $methods = array_merge($methods, $extensions, $accessors);
 
         $methods[] = $this->generateUnknownFieldSetMethod();
+        $methods[] = $this->generateExtensionsMethod();
         $methods[] = $this->generateSerializedSizeMethod();
         $methods[] = $this->generateToStreamMethod();
         $methods[] = $this->generateReadFromMethod();
@@ -246,10 +229,54 @@ class MessageGenerator extends BaseGenerator
     /**
      * @return string
      */
+    public function generateExtensionMethods()
+    {
+        $methods = [];
+
+        foreach (($this->proto->getExtensionList() ?: []) as $field) {
+            $methods[] = $this->generateExtensionMethod($field);
+        }
+
+        return $methods;
+    }
+
+    /**
+     * @param \google\protobuf\FieldDescriptorProto $field
+     *
+     * @return string
+     */
+    public function generateExtensionMethod(FieldDescriptorProto $field)
+    {
+        $fieldName  = $field->getName();
+        $bodyGen    = new ExtensionMethodBodyGenerator($this->proto, $this->options, $this->package);
+        $body       = implode(PHP_EOL, $bodyGen->generateBody($field));
+        $method     = MethodGenerator::fromArray([
+            'static'     => true,
+            'body'       => $body,
+            'name'       => $fieldName,
+            'docblock'   => [
+                'shortDescription' => "Extension field : $fieldName",
+                'tags'             => [
+                    [
+                        'name'        => 'return',
+                        'description' => '\Protobuf\Extension',
+                    ]
+                ]
+            ]
+        ]);
+
+        $method->getDocblock()->setWordWrap(false);
+
+        return $method;
+    }
+
+    /**
+     * @return string
+     */
     public function generateUnknownFieldSetMethod()
     {
         $methodName = 'unknownFieldSet';
-        $fieldName  = $this->getUnknownFieldSetName($this->proto);
+        $fieldName  = $this->getUniqueFieldName($this->proto, $methodName);
         $method     = MethodGenerator::fromArray([
             'name'       => $methodName,
             'body'       => 'return $this->' . $fieldName . ';',
@@ -258,13 +285,42 @@ class MessageGenerator extends BaseGenerator
                 'tags'             => [
                     [
                         'name'        => 'return',
-                        'description' => 'Protobuf\UnknownFieldSet',
+                        'description' => '\Protobuf\UnknownFieldSet',
                     ]
                 ]
             ]
         ]);
 
         return $method;
+    }
+
+    /**
+     * @return string
+     */
+    public function generateExtensionsMethod()
+    {
+        $lines      = [];
+        $fieldName  = $this->getUniqueFieldName($this->proto, 'extensions');
+
+        $lines[] = 'if ( $this->' . $fieldName . ' !== null) {';
+        $lines[] = '    return $this->' . $fieldName . ';';
+        $lines[] = '}';
+        $lines[] = null;
+        $lines[] = 'return $this->' . $fieldName . ' = new \Protobuf\ExtensionFieldMap();';
+
+        return MethodGenerator::fromArray([
+            'name'       => 'extensions',
+            'body'       => implode(PHP_EOL, $lines),
+            'docblock'   => [
+                'shortDescription' => "{@inheritdoc}",
+                'tags'             => [
+                    [
+                        'name'        => 'return',
+                        'description' => '\Protobuf\ExtensionFieldMap',
+                    ]
+                ]
+            ]
+        ]);
     }
 
     /**

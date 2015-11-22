@@ -27,6 +27,8 @@ namespace ProtobufCompilerTest\Protos;
  *       default="HOME",
  *       reference="ProtobufTest.Protos.Person.PhoneType"
  *     )
+ *   },
+ *   extensions={
  *   }
  * )
  */
@@ -37,6 +39,11 @@ class PhoneNumber extends \Protobuf\AbstractMessage
      * @var \Protobuf\UnknownFieldSet
      */
     protected $unknownFieldSet = null;
+
+    /**
+     * @var \Protobuf\ExtensionFieldMap
+     */
+    protected $extensions = null;
 
     /**
      * number required string = 1
@@ -123,11 +130,25 @@ class PhoneNumber extends \Protobuf\AbstractMessage
     /**
      * Get unknown values
      *
-     * @return Protobuf\UnknownFieldSet
+     * @return \Protobuf\UnknownFieldSet
      */
     public function unknownFieldSet()
     {
         return $this->unknownFieldSet;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @return \Protobuf\ExtensionFieldMap
+     */
+    public function extensions()
+    {
+        if ( $this->extensions !== null) {
+            return $this->extensions;
+        }
+
+        return $this->extensions = new \Protobuf\ExtensionFieldMap();
     }
 
     /**

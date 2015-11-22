@@ -150,11 +150,12 @@ class BaseGeneratorTest extends TestCase
         $this->assertNull($actual);
     }
 
-    public function testGetUnknownFieldSetName()
+    public function testGetUniqueFieldName()
     {
-        $proto  = new DescriptorProto();
-        $field1 = new FieldDescriptorProto();
-        $field2 = new FieldDescriptorProto();
+        $default = 'unknownFieldSet';
+        $proto   = new DescriptorProto();
+        $field1  = new FieldDescriptorProto();
+        $field2  = new FieldDescriptorProto();
 
         $field1->setName('foo');
         $field2->setName('bar');
@@ -163,17 +164,18 @@ class BaseGeneratorTest extends TestCase
         $proto->addField($field2);
 
         $expected = 'unknownFieldSet';
-        $actual   = $this->invokeMethod($this->generator, 'getUnknownFieldSetName', [$proto]);
+        $actual   = $this->invokeMethod($this->generator, 'getUniqueFieldName', [$proto, $default]);
 
         $this->assertEquals($expected, $actual);
     }
 
     public function testGetUniqueUnknownFieldSetName()
     {
-        $proto  = new DescriptorProto();
-        $field1 = new FieldDescriptorProto();
-        $field2 = new FieldDescriptorProto();
-        $field3 = new FieldDescriptorProto();
+        $default = 'unknownFieldSet';
+        $proto   = new DescriptorProto();
+        $field1  = new FieldDescriptorProto();
+        $field2  = new FieldDescriptorProto();
+        $field3  = new FieldDescriptorProto();
 
         $field1->setName('unknownFieldSet');
         $field2->setName('unknownFieldSet0');
@@ -184,7 +186,7 @@ class BaseGeneratorTest extends TestCase
         $proto->addField($field3);
 
         $expected = 'unknownFieldSet2';
-        $actual   = $this->invokeMethod($this->generator, 'getUnknownFieldSetName', [$proto]);
+        $actual   = $this->invokeMethod($this->generator, 'getUniqueFieldName', [$proto, $default]);
 
         $this->assertEquals($expected, $actual);
     }

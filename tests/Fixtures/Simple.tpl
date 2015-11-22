@@ -103,6 +103,8 @@ namespace ProtobufCompilerTest\Protos;
  *       type=18,
  *       label=1
  *     )
+ *   },
+ *   extensions={
  *   }
  * )
  */
@@ -113,6 +115,11 @@ class Simple extends \Protobuf\AbstractMessage
      * @var \Protobuf\UnknownFieldSet
      */
     protected $unknownFieldSet = null;
+
+    /**
+     * @var \Protobuf\ExtensionFieldMap
+     */
+    protected $extensions = null;
 
     /**
      * double optional double = 1
@@ -672,11 +679,25 @@ class Simple extends \Protobuf\AbstractMessage
     /**
      * Get unknown values
      *
-     * @return Protobuf\UnknownFieldSet
+     * @return \Protobuf\UnknownFieldSet
      */
     public function unknownFieldSet()
     {
         return $this->unknownFieldSet;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @return \Protobuf\ExtensionFieldMap
+     */
+    public function extensions()
+    {
+        if ( $this->extensions !== null) {
+            return $this->extensions;
+        }
+
+        return $this->extensions = new \Protobuf\ExtensionFieldMap();
     }
 
     /**
