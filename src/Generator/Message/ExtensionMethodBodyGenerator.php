@@ -22,15 +22,17 @@ class ExtensionMethodBodyGenerator extends BaseGenerator
         $name          = $field->getName();
         $tag           = $field->getNumber();
         $nameQuoted    = var_export($name, true);
+        $sizeCallback  = $this->generateSizeCallback($field);
         $readCallback  = $this->generateReadCallback($field);
         $writeCallback = $this->generateWriteCallback($field);
-        $arguments     = implode(', ', [$nameQuoted, $tag, '$readCallback', '$writeCallback']);
+        $callbacks     = array_merge($readCallback, [null], $writeCallback, [null], $sizeCallback);
+        $arguments     = implode(', ', [$nameQuoted, $tag, '$readCallback', '$writeCallback', '$sizeCallback']);
 
         $body[] = 'if (self::$' . $name . ' !== null) {';
         $body[] = '    return self::$' . $name . ';';
         $body[] = '}';
         $body[] = null;
-        $body   = array_merge($body, $readCallback, [null], $writeCallback);
+        $body   = array_merge($body, $callbacks);
         $body[] = null;
         $body[] = 'return self::$' . $name . ' = new \Protobuf\Extension(' . $arguments . ');';
 
@@ -48,7 +50,7 @@ class ExtensionMethodBodyGenerator extends BaseGenerator
         $sttm  = $this->generateFieldReadStatement($field);
         $lines = $this->addIndentation($sttm, 1);
 
-        $body[] = '$readCallback = function (\Protobuf\ReadContext $context, $key, $wire, $tag) {';
+        $body[] = '$readCallback = function (\Protobuf\ReadContext $context, $wire) {';
         $body[] = '    $reader = $context->getReader();';
         $body[] = '    $length = $context->getLength();';
         $body[] = '    $stream = $context->getStream();';
@@ -70,12 +72,36 @@ class ExtensionMethodBodyGenerator extends BaseGenerator
         $sttm  = $this->generateFieldWriteStatement($field);
         $lines = $this->addIndentation($sttm, 1);
 
-        $body[] = '$writeCallback = function ($value, \Protobuf\WriteContext $context) {';
+        $body[] = '$writeCallback = function (\Protobuf\WriteContext $context, $value) {';
         $body[] = '    $stream      = $context->getStream();';
         $body[] = '    $writer      = $context->getWriter();';
         $body[] = '    $sizeContext = $context->getComputeSizeContext();';
         $body[] = null;
         $body   = array_merge($body, $lines);
+        $body[] = '};';
+
+        return $body;
+    }
+
+    /**
+     * @param \google\protobuf\FieldDescriptorProto $field
+     *
+     * @return string[]
+     */
+    protected function generateSizeCallback(FieldDescriptorProto $field)
+    {
+        $body  = [];
+        $sttm  = $this->generateFieldSizeStatement($field);
+        $lines = $this->addIndentation($sttm, 1);
+
+        $body[] = '$sizeCallback = function (\Protobuf\ComputeSizeContext $context, $value) {';
+        $body[] = '    $calculator = $context->getSizeCalculator();';
+        $body[] = '    $size       = 0;';
+        $body[] = null;
+        $body   = array_merge($body, $lines);
+        $body[] = null;
+        $body[] = '    return $size;';
+        $body[] = null;
         $body[] = '};';
 
         return $body;
@@ -108,5 +134,19 @@ class ExtensionMethodBodyGenerator extends BaseGenerator
         $generator->setTargetVar('$value');
 
         return $generator->generateFieldWriteStatement($field);
+    }
+
+    /**
+     * @param \google\protobuf\FieldDescriptorProto $field
+     *
+     * @return string[]
+     */
+    protected function generateFieldSizeStatement(FieldDescriptorProto $field)
+    {
+        $generator = new SerializedSizeFieldStatementGenerator($this->proto, $this->options, $this->package);
+
+        $generator->setTargetVar('$value');
+
+        return $generator->generateFieldSizeStatement($field);
     }
 }

@@ -43,8 +43,8 @@ class WriteFieldStatementGenerator extends BaseGenerator
         $rule     = $field->getLabel();
         $tag      = $field->getNumber();
         $options  = $field->getOptions();
-        $isPack   = $options ? $options->getPacked() : false;
         $variable = $this->targetVar ?: '$this->' . $name;
+        $isPack   = $options ? $options->getPacked() : false;
 
         $wire = $isPack ? WireFormat::WIRE_LENGTH : WireFormat::getWireType($type->value(), null);
         $key  = WireFormat::getFieldKey($tag, $wire);

@@ -37,6 +37,13 @@ class WriteToMethodBodyGenerator extends BaseGenerator
             $body  = array_merge($body, $lines, [null]);
         }
 
+        $extensionsField = $this->getUniqueFieldName($this->proto, 'extensions');
+        $extensionsVar   = '$this->' . $extensionsField;
+
+        $body[] = 'if (' . $extensionsVar . ' !== null) {';
+        $body[] = '    ' . $extensionsVar . '->writeTo($context);';
+        $body[] = '}';
+        $body[] = null;
         $body[] = 'return $stream;';
 
         return $body;

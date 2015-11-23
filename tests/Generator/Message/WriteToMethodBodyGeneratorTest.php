@@ -55,6 +55,10 @@ if ($this->lines !== null) {
     }
 }
 
+if ($this->extensions !== null) {
+    $this->extensions->writeTo($context);
+}
+
 return $stream;
 CODE;
 

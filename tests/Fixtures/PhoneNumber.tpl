@@ -265,6 +265,10 @@ class PhoneNumber extends \Protobuf\AbstractMessage
             $writer->writeVarint($stream, $this->type->value());
         }
 
+        if ($this->extensions !== null) {
+            $this->extensions->writeTo($context);
+        }
+
         return $stream;
     }
 

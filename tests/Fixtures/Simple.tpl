@@ -1044,6 +1044,10 @@ class Simple extends \Protobuf\AbstractMessage
             $writer->writeZigzag64($stream, $this->sint64);
         }
 
+        if ($this->extensions !== null) {
+            $this->extensions->writeTo($context);
+        }
+
         return $stream;
     }
 

@@ -411,6 +411,10 @@ class Person extends \Protobuf\AbstractMessage
             }
         }
 
+        if ($this->extensions !== null) {
+            $this->extensions->writeTo($context);
+        }
+
         return $stream;
     }
 

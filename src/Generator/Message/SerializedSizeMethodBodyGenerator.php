@@ -28,6 +28,7 @@ class SerializedSizeMethodBodyGenerator extends BaseGenerator
     {
         $body[] = '$calculator = $context->getSizeCalculator();';
         $body[] = '$size       = 0;';
+
         $body[] = null;
 
         foreach (($this->proto->getFieldList() ?: []) as $field) {
@@ -35,7 +36,24 @@ class SerializedSizeMethodBodyGenerator extends BaseGenerator
             $body  = array_merge($body, $lines, [null]);
         }
 
+        // $body   = array_merge($body, $this->generateExtensionsSerializedSize());
+        // $body[] = null;
         $body[] = 'return $size;';
+
+        return $body;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function generateExtensionsSerializedSize()
+    {
+        $extensionsField = $this->getUniqueFieldName($this->proto, 'extensions');
+        $extensionsVar   = '$this->' . $extensionsField;
+
+        $body[] = 'if (' . $extensionsVar . ' !== null) {';
+        $body[] = '    $size += ' . $extensionsVar . '->serializedSize($context);';
+        $body[] = '}';
 
         return $body;
     }
@@ -47,13 +65,11 @@ class SerializedSizeMethodBodyGenerator extends BaseGenerator
      */
     public function generateFieldCondition(FieldDescriptorProto $field)
     {
-        $body      = [];
-        $fieldName = $field->getName();
-        $format    = 'if ($this->%s !== null) {';
-        $sttm      = $this->generateFieldSizeStatement($field);
-        $lines     = $this->addIndentation($sttm, 1);
+        $sttm  = $this->generateFieldSizeStatement($field);
+        $lines = $this->addIndentation($sttm, 1);
+        $name  = $field->getName();
 
-        $body[] = sprintf($format, $fieldName);
+        $body[] = 'if ($this->' . $name . ' !== null) {';
         $body   = array_merge($body, $lines);
         $body[] = '}';
 
@@ -67,73 +83,9 @@ class SerializedSizeMethodBodyGenerator extends BaseGenerator
      */
     public function generateFieldSizeStatement(FieldDescriptorProto $field)
     {
-        $body    = [];
-        $name    = $field->getName();
-        $type    = $field->getType();
-        $rule    = $field->getLabel();
-        $tag     = $field->getNumber();
-        $options = $field->getOptions();
-        $isPack  = $options ? $options->getPacked() : false;
+        $generator = new SerializedSizeFieldStatementGenerator($this->proto, $this->options, $this->package);
+        $statement = $generator->generateFieldSizeStatement($field);
 
-        $wire    = $isPack ? WireFormat::WIRE_LENGTH : WireFormat::getWireType($type->value(), null);
-        $key     = WireFormat::getFieldKey($tag, $wire);
-        $keySize = $this->getSizeCalculator()->computeVarintSize($key);
-
-        if ($rule === Label::LABEL_REPEATED() && $isPack) {
-            $body[] = '$innerSize = 0;';
-            $body[] = null;
-            $body[] = 'foreach ($this->' . $name . ' as $val) {';
-            $body[] = '    $innerSize += ' . $this->generateValueSizeStatement($type->value(), '$val') . ';';
-            $body[] = '}';
-            $body[] = null;
-            $body[] = '$size += ' . $keySize . ';';
-            $body[] = '$size += $innerSize;';
-            $body[] = '$size += $calculator->computeVarintSize($innerSize);';
-
-            return $body;
-        }
-
-        if ($rule === Label::LABEL_REPEATED() && $type !== Type::TYPE_MESSAGE()) {
-            $body[] = 'foreach ($this->' . $name . ' as $val) {';
-            $body[] = '    $size += ' . $keySize . ';';
-            $body[] = '    $size += ' . $this->generateValueSizeStatement($type->value(), '$val') . ';';
-            $body[] = '}';
-
-            return $body;
-        }
-
-        if ($rule === Label::LABEL_REPEATED()) {
-            $body[] = sprintf('foreach ($this->%s as $val) {', $name);
-            $body[] = '    $innerSize = $val->serializedSize($context);';
-            $body[] = null;
-            $body[] = '    $size += ' . $keySize . ';';
-            $body[] = '    $size += $innerSize;';
-            $body[] = '    $size += $calculator->computeVarintSize($innerSize);';
-            $body[] = '}';
-
-            return $body;
-        }
-
-        if ($type === Type::TYPE_ENUM()) {
-            $body[] = '$size += ' . $keySize . ';';
-            $body[] = '$size += ' . $this->generateValueSizeStatement($type->value(), '$this->' . $name . '->value()') . ';';
-
-            return $body;
-        }
-
-        if ($type !== Type::TYPE_MESSAGE()) {
-            $body[] = '$size += ' . $keySize . ';';
-            $body[] = '$size += ' . $this->generateValueSizeStatement($type->value(), '$this->' . $name) . ';';
-
-            return $body;
-        }
-
-        $body[] = '$innerSize = $this->' . $name . '->serializedSize($context);';
-        $body[] = null;
-        $body[] = '$size += ' . $keySize . ';';
-        $body[] = '$size += $innerSize;';
-        $body[] = '$size += $calculator->computeVarintSize($innerSize);';
-
-        return $body;
+        return $statement;
     }
 }
