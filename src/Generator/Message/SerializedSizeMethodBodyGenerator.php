@@ -36,8 +36,8 @@ class SerializedSizeMethodBodyGenerator extends BaseGenerator
             $body  = array_merge($body, $lines, [null]);
         }
 
-        // $body   = array_merge($body, $this->generateExtensionsSerializedSize());
-        // $body[] = null;
+        $body   = array_merge($body, $this->generateExtensionsSerializedSize());
+        $body[] = null;
         $body[] = 'return $size;';
 
         return $body;

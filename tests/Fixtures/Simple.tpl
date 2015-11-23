@@ -783,6 +783,10 @@ class Simple extends \Protobuf\AbstractMessage
             $size += $calculator->computeZigzag64Size($this->sint64);
         }
 
+        if ($this->extensions !== null) {
+            $size += $this->extensions->serializedSize($context);
+        }
+
         return $size;
     }
 

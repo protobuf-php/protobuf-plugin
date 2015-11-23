@@ -271,6 +271,10 @@ class Person extends \Protobuf\AbstractMessage
             }
         }
 
+        if ($this->extensions !== null) {
+            $size += $this->extensions->serializedSize($context);
+        }
+
         return $size;
     }
 

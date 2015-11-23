@@ -23,13 +23,8 @@ class PluginCommandTest extends TestCase
         $streamOut = $this->getMockBuilder('Protobuf\Stream')
             ->disableOriginalConstructor()
             ->getMock();
-
-        $streamOut->expects($this->once())
-            ->method('__toString')
-            ->willReturn('bin-response');
-
         $mock = $this->getMockBuilder(PluginCommand::CLASS)
-            ->setMethods(['createCompiler'])
+            ->setMethods(['createCompiler', 'writeStream'])
             ->getMock();
 
         $mock->setStream($streamIn);
@@ -37,6 +32,10 @@ class PluginCommandTest extends TestCase
         $mock->expects($this->once())
             ->method('createCompiler')
             ->willReturn($compiler);
+
+        $mock->expects($this->once())
+            ->method('writeStream')
+            ->with($streamOut);
 
         $compiler->expects($this->once())
             ->method('compile')
@@ -51,8 +50,6 @@ class PluginCommandTest extends TestCase
         $commandTester = new CommandTester($command);
 
         $commandTester->execute([]);
-
-        $this->assertEquals('bin-response', $commandTester->getDisplay());
     }
 
     /**

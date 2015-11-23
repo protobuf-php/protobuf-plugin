@@ -169,6 +169,10 @@ class PhoneNumber extends \Protobuf\AbstractMessage
             $size += $calculator->computeVarintSize($this->type->value());
         }
 
+        if ($this->extensions !== null) {
+            $size += $this->extensions->serializedSize($context);
+        }
+
         return $size;
     }
 

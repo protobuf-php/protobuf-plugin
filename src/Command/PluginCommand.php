@@ -46,6 +46,15 @@ class PluginCommand extends Command
     }
 
     /**
+     * @param \Protobuf\Stream $stream
+     */
+    protected function writeStream(Stream $stream)
+    {
+        // OutputInterface#write messes with the content
+        fwrite(STDOUT, $stream);
+    }
+
+    /**
      * {@inheritdoc}
      */
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -57,7 +66,7 @@ class PluginCommand extends Command
         $compiler = $this->createCompiler($output);
         $response = $compiler->compile($this->stream);
 
-        $output->write((string) $response);
+        $this->writeStream($response);
     }
 
     /**

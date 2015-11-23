@@ -41,11 +41,7 @@ class SerializedSizeMethodBodyGeneratorTest extends TestCase
         $field->setLabel(FieldDescriptorProto\Label::LABEL_REPEATED());
 
         $proto->addField($field);
-/*
-if ($this->extensions !== null) {
-    $size += $this->extensions->serializedSize($context);
-}
-*/
+
         $actual   = $generator->generateBody();
         $expected = <<<'CODE'
 $calculator = $context->getSizeCalculator();
@@ -56,6 +52,10 @@ if ($this->lines !== null) {
         $size += 1;
         $size += $calculator->computeVarintSize($val);
     }
+}
+
+if ($this->extensions !== null) {
+    $size += $this->extensions->serializedSize($context);
 }
 
 return $size;
