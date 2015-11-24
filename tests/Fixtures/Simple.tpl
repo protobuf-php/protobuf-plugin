@@ -697,7 +697,7 @@ class Simple extends \Protobuf\AbstractMessage
             return $this->extensions;
         }
 
-        return $this->extensions = new \Protobuf\ExtensionFieldMap(self::CLASS);
+        return $this->extensions = new \Protobuf\ExtensionFieldMap(__CLASS__);
     }
 
     /**
