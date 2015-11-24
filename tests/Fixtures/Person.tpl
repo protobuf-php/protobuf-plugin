@@ -364,7 +364,7 @@ class Person extends \Protobuf\AbstractMessage
             }
 
             $extensions = $context->getExtensionRegistry();
-            $extension  = $extensions ? $extensions->findByNumber(self::CLASS, $tag) : null;
+            $extension  = $extensions ? $extensions->findByNumber(__CLASS__, $tag) : null;
 
             if ($extension !== null) {
                 $this->extensions()->put($extension, $extension->readFrom($context, $wire));

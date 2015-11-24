@@ -71,7 +71,7 @@ class ReadFromMethodBodyGenerator extends BaseGenerator
         $extensionsFieldName = $this->getUniqueFieldName($this->proto, 'extensions');
 
         $body[] = '$extensions = $context->getExtensionRegistry();';
-        $body[] = '$extension  = $extensions ? $extensions->findByNumber(self::CLASS, $tag) : null;';
+        $body[] = '$extension  = $extensions ? $extensions->findByNumber(__CLASS__, $tag) : null;';
         $body[] = null;
         $body[] = 'if ($extension !== null) {';
         $body[] = '    $this->extensions()->put($extension, $extension->readFrom($context, $wire));';
