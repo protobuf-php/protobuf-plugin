@@ -78,6 +78,15 @@ while ($limit === null || $stream->tell() < $limit) {
         continue;
     }
 
+    $extensions = $context->getExtensionRegistry();
+    $extension  = $extensions ? $extensions->findByNumber(self::CLASS, $tag) : null;
+
+    if ($extension !== null) {
+        $this->extensions()->put($extension, $extension->readFrom($context, $wire));
+
+        continue;
+    }
+
     if ($this->unknownFieldSet === null) {
         $this->unknownFieldSet = new \Protobuf\UnknownFieldSet();
     }

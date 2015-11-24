@@ -19,14 +19,25 @@ class ExtensionMethodBodyGenerator extends BaseGenerator
      */
     public function generateBody(FieldDescriptorProto $field)
     {
-        $name          = $field->getName();
-        $tag           = $field->getNumber();
-        $nameQuoted    = var_export($name, true);
+        $name     = $field->getName();
+        $tag      = $field->getNumber();
+        $extendee = $this->getNamespace($field->getExtendee());
+
+        $nameQuoted     = var_export($name, true);
+        $extendeeQuoted = var_export($extendee, true);
+
         $sizeCallback  = $this->generateSizeCallback($field);
         $readCallback  = $this->generateReadCallback($field);
         $writeCallback = $this->generateWriteCallback($field);
         $callbacks     = array_merge($readCallback, [null], $writeCallback, [null], $sizeCallback);
-        $arguments     = implode(', ', [$nameQuoted, $tag, '$readCallback', '$writeCallback', '$sizeCallback']);
+        $arguments     = [
+            $extendeeQuoted,
+            $nameQuoted,
+            $tag,
+            '$readCallback',
+            '$writeCallback',
+            '$sizeCallback'
+        ];
 
         $body[] = 'if (self::$' . $name . ' !== null) {';
         $body[] = '    return self::$' . $name . ';';
@@ -34,7 +45,7 @@ class ExtensionMethodBodyGenerator extends BaseGenerator
         $body[] = null;
         $body   = array_merge($body, $callbacks);
         $body[] = null;
-        $body[] = 'return self::$' . $name . ' = new \Protobuf\Extension(' . $arguments . ');';
+        $body[] = 'return self::$' . $name . ' = new \Protobuf\Extension(' . implode(', ', $arguments) . ');';
 
         return $body;
     }

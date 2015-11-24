@@ -67,8 +67,18 @@ class ReadFromMethodBodyGenerator extends BaseGenerator
             $body  = array_merge($body, $lines);
         }
 
-        $unknowFieldName = $this->getUniqueFieldName($this->proto, 'unknownFieldSet');
+        $unknowFieldName     = $this->getUniqueFieldName($this->proto, 'unknownFieldSet');
+        $extensionsFieldName = $this->getUniqueFieldName($this->proto, 'extensions');
 
+        $body[] = '$extensions = $context->getExtensionRegistry();';
+        $body[] = '$extension  = $extensions ? $extensions->findByNumber(self::CLASS, $tag) : null;';
+        $body[] = null;
+        $body[] = 'if ($extension !== null) {';
+        $body[] = '    $this->extensions()->put($extension, $extension->readFrom($context, $wire));';
+        $body[] = null;
+        $body[] = '    continue;';
+        $body[] = '}';
+        $body[] = null;
         $body[] = 'if ($this->' . $unknowFieldName . ' === null) {';
         $body[] = '    $this->' . $unknowFieldName . ' = new \Protobuf\UnknownFieldSet();';
         $body[] = '}';

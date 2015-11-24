@@ -306,7 +306,7 @@ class MessageGenerator extends BaseGenerator
         $lines[] = '    return $this->' . $fieldName . ';';
         $lines[] = '}';
         $lines[] = null;
-        $lines[] = 'return $this->' . $fieldName . ' = new \Protobuf\ExtensionFieldMap();';
+        $lines[] = 'return $this->' . $fieldName . ' = new \Protobuf\ExtensionFieldMap(self::CLASS);';
 
         return MethodGenerator::fromArray([
             'name'       => 'extensions',
