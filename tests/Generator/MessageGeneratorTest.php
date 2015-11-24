@@ -96,4 +96,32 @@ class MessageGeneratorTest extends TestCase
         $this->assertArrayHasKey($className, $result);
         $this->assertEquals($expected, $result[$className]);
     }
+
+    public function testGenerateExtensionMessage()
+    {
+        $fileDesc          = new DescriptorProto();
+        $protoFile         = new FileDescriptorProto();
+        $fieldBonesBuried  = $this->createFieldDescriptorProto(1, 'bones_buried', Field::TYPE_INT32, Field::LABEL_OPTIONAL);
+        $fieldExtAnimal    = $this->createFieldDescriptorProto(101, 'animal', Field::TYPE_MESSAGE, Field::LABEL_OPTIONAL, '.ProtobufTest.Protos.Extension.Dog');
+
+        $fieldExtAnimal->setExtendee('.ProtobufTest.Protos.Extension.Animal');
+
+        $fileDesc->setName('Dog');
+        $fileDesc->addField($fieldBonesBuried);
+        $fileDesc->addExtension($fieldExtAnimal);
+
+        $protoFile->setName('extensions.proto');
+        $protoFile->setPackage('ProtobufTest.Protos.Extension');
+
+        $options   = Options::fromArray(['package' => 'ProtobufTest.Protos.Extension']);
+        $generator = new Generator($protoFile, $options);
+        $className = 'ProtobufTest.Protos.Extension.Dog';
+        $result    = $generator->generateMessages([$fileDesc], 'ProtobufTest.Protos.Extension');
+        $expected  = $this->getFixtureFileContent('Extension/Dog.tpl');
+
+        // file_put_contents(__DIR__ . '/../Fixtures/Extension/Dog.tpl', $result[$className]);
+
+        $this->assertArrayHasKey($className, $result);
+        $this->assertEquals($expected, $result[$className]);
+    }
 }
