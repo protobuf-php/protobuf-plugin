@@ -66,54 +66,7 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\ExtensionMessag
      */
     public static function animal()
     {
-        if (self::$animal !== null) {
-            return self::$animal;
-        }
-
-        $readCallback = function (\Protobuf\ReadContext $context, $wire) {
-            $reader = $context->getReader();
-            $length = $context->getLength();
-            $stream = $context->getStream();
-
-            \Protobuf\WireFormat::assertWireType($wire, 11);
-
-            $innerSize    = $reader->readVarint($stream);
-            $innerMessage = new \ProtobufTest\Protos\Extension\Dog();
-
-            $value = $innerMessage;
-
-            $context->setLength($innerSize);
-            $innerMessage->readFrom($context);
-            $context->setLength($length);
-
-            return $value;
-        };
-
-        $writeCallback = function (\Protobuf\WriteContext $context, $value) {
-            $stream      = $context->getStream();
-            $writer      = $context->getWriter();
-            $sizeContext = $context->getComputeSizeContext();
-
-            $writer->writeVarint($stream, 810);
-            $writer->writeVarint($stream, $value->serializedSize($sizeContext));
-            $value->writeTo($context);
-        };
-
-        $sizeCallback = function (\Protobuf\ComputeSizeContext $context, $value) {
-            $calculator = $context->getSizeCalculator();
-            $size       = 0;
-
-            $innerSize = $value->serializedSize($context);
-
-            $size += 2;
-            $size += $innerSize;
-            $size += $calculator->computeVarintSize($innerSize);
-
-            return $size;
-
-        };
-
-        return self::$animal = new \Protobuf\Extension('\\ProtobufTest\\Protos\\Extension\\Animal', 'animal', 101, $readCallback, $writeCallback, $sizeCallback);
+        return \ProtobufTest\Protos\Extension\Animal\Animal::extension();
     }
 
     /**
