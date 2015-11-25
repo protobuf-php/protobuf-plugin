@@ -55,6 +55,10 @@ class MessageGenerator extends BaseGenerator
             ]
         ]);
 
+        if ($this->proto->hasExtensionList()) {
+            $class->setImplementedInterfaces(['\Protobuf\ExtensionMessage']);
+        }
+
         return $this->generateFileContent($class);
     }
 

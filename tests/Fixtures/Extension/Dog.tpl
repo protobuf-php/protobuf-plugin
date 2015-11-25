@@ -32,7 +32,7 @@ namespace ProtobufTest\Protos\Extension;
  *   }
  * )
  */
-class Dog extends \Protobuf\AbstractMessage
+class Dog extends \Protobuf\AbstractMessage implements \Protobuf\ExtensionMessage
 {
 
     /**
