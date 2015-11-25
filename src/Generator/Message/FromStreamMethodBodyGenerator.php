@@ -19,12 +19,9 @@ class FromStreamMethodBodyGenerator extends BaseGenerator
      */
     public function generateBody()
     {
-        $package   = $this->package . '.' . $this->proto->getName();
-        $className = $this->getNamespace($package);
-
         $body[] = '$config  = $configuration ?: \Protobuf\Configuration::getInstance();';
         $body[] = '$context = $config->createReadContext($stream);';
-        $body[] = '$message = new ' . $className . '();';
+        $body[] = '$message = new self();';
         $body[] = null;
         $body[] = '$message->readFrom($context);';
         $body[] = null;

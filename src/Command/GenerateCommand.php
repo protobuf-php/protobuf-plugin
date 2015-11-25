@@ -45,7 +45,7 @@ class GenerateCommand extends Command
             ->setName('protobuf:generate')
             ->setDescription('Executes protoc to generate PHP classes')
             ->addArgument('protos', InputArgument::IS_ARRAY|InputArgument::REQUIRED, 'proto files')
-            ->addOption('skip-imported', null, InputOption::VALUE_NONE, 'do not generate imported proto files')
+            ->addOption('generate-imported', null, InputOption::VALUE_NONE, 'Generate imported proto files')
             ->addOption('protoc', null, InputOption::VALUE_REQUIRED, 'protoc compiler executable path', 'protoc')
             ->addOption('out', 'o', InputOption::VALUE_REQUIRED, 'destination directory for generated files', './')
             ->addOption('psr4', null, InputOption::VALUE_IS_ARRAY|InputOption::VALUE_REQUIRED, 'psr-4 base directory')
@@ -69,8 +69,8 @@ class GenerateCommand extends Command
             $args['verbose'] = 1;
         }
 
-        if ($input->getOption('skip-imported')) {
-            $args['skip-imported'] = 1;
+        if ($input->getOption('generate-imported')) {
+            $args['generate-imported'] = 1;
         }
 
         if ($psr4) {

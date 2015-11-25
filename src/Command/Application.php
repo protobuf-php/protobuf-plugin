@@ -94,7 +94,9 @@ class Application extends SymfonyApplication
             $length = mb_strlen($buffer, '8bit');
 
             if ($length > 0) {
+
                 $stream->write($buffer, $length);
+                $counter = 0;
 
                 continue;
             }

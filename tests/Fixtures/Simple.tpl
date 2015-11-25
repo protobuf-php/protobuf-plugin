@@ -1071,7 +1071,7 @@ class Simple extends \Protobuf\AbstractMessage
     {
         $config  = $configuration ?: \Protobuf\Configuration::getInstance();
         $context = $config->createReadContext($stream);
-        $message = new \ProtobufCompilerTest\Protos\Simple();
+        $message = new self();
 
         $message->readFrom($context);
 

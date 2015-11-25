@@ -25,11 +25,18 @@ class Compiler
     protected $logger;
 
     /**
-     * @param \Psr\Log\LoggerInterface $logger
+     * @var \Protobuf\Configuration
      */
-    public function __construct(LoggerInterface $logger)
+    protected $config;
+
+    /**
+     * @param \Psr\Log\LoggerInterface $logger
+     * @param \Protobuf\Configuration  $config
+     */
+    public function __construct(LoggerInterface $logger, Configuration $config = null)
     {
         $this->logger = $logger;
+        $this->config = $config ?: Configuration::getInstance();
     }
 
     /**
@@ -61,31 +68,33 @@ class Compiler
     {
         // Parse the request
         $response = new CodeGeneratorResponse();
-        $request  = CodeGeneratorRequest::fromStream($stream);
+        $request  = CodeGeneratorRequest::fromStream($stream, $this->config);
 
-        $generateList = $request->getFileToGenerateList() ?: [];
         $protoList    = $request->getProtoFileList() ?: [];
+        $generateList = $request->hasFileToGenerateList()
+            ? $request->getFileToGenerateList()->getArrayCopy()
+            : [];
 
         // Run each file
         foreach ($protoList as $file) {
 
-            $options      = $this->createOptions($request, $file);
-            $skipImported = $options->getSkipImported();
+            $options          = $this->createOptions($request, $file);
+            $generateImported = $options->getGenerateImported();
 
             // Only compile those given to generate, not the imported ones
-            if ($skipImported && ! in_array($file->getName(), $generateList)) {
-                $this->logger->notice(sprintf('Skipping generation of imported file "%s"', $file->getName()));
+            if ( ! $generateImported && ! in_array($file->getName(), $generateList)) {
+                $this->logger->info(sprintf('Skipping generation of imported file "%s"', $file->getName()));
 
                 continue;
             }
 
-            $this->logger->info(sprintf('Generating "%s"', $file->getName()));
+            $this->logger->info(sprintf('Generating proto file "%s"', $file->getName()));
 
             $generator = new Generator($file, $options);
             $result    = $generator->generate($file);
 
             foreach ($result as $path => $content) {
-                $this->logger->info(sprintf('Generating "%s"', $path));
+                $this->logger->info(sprintf('Generating class "%s"', $path));
 
                 $file = new File();
 
@@ -97,6 +106,6 @@ class Compiler
         }
 
         // Finally serialize the response object
-        return $response->toStream();
+        return $response->toStream($this->config);
     }
 }

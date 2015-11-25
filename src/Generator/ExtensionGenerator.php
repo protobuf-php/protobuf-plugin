@@ -31,23 +31,22 @@ use Protobuf\Compiler\Generator\Message\SerializedSizeFieldStatementGenerator;
 class ExtensionGenerator extends BaseGenerator
 {
     /**
+     * @param string $namespace
+     *
      * @return string
      */
-    public function generate()
+    public function generate($namespace)
     {
-        $extendee         = $this->proto->getExtendee();
-        $namespace        = trim($this->getNamespace($extendee), '\\');
-        $name             = Inflector::classify($this->proto->getName());
-        $shortDescription = 'Protobuf exntension : ' . $this->proto->getName();
+        $namespace        = trim($this->getNamespace($namespace), '\\');
+        $shortDescription = 'Protobuf extension : ' . $namespace;
         $class            = ClassGenerator::fromArray([
-            'name'                  => $name,
+            'name'                  => 'Extension',
             'namespacename'         => $namespace,
-            'implementedinterfaces' => ['\Protobuf\Extension'],
+            'implementedinterfaces' => ['\Protobuf\ExtensionMessage'],
             'properties'            => $this->generateFields(),
             'methods'               => $this->generateMethods(),
             'docblock'              => [
-                'shortDescription' => $shortDescription,
-                //'longDescription'  => $longDescription
+                'shortDescription' => $shortDescription
             ]
         ]);
 
@@ -59,12 +58,34 @@ class ExtensionGenerator extends BaseGenerator
      */
     public function generateFields()
     {
-        $extension = PropertyGenerator::fromArray([
-            'static'     => true,
-            'name'       => 'extension',
-            'visibility' => PropertyGenerator::VISIBILITY_PROTECTED,
-            'docblock'   => [
-                'tags'   => [
+        $fields = [];
+
+        foreach (($this->proto->getExtensionList() ?: []) as $field) {
+            $fields[] = $this->generateExtensionField($field);
+        }
+
+        return $fields;
+    }
+
+    /**
+     * @param \google\protobuf\FieldDescriptorProto $field
+     *
+     * @return string
+     */
+    public function generateExtensionField(FieldDescriptorProto $field)
+    {
+        $name     = $field->getName();
+        $number   = $field->getNumber();
+        $docBlock = $this->getDocBlockType($field);
+        $type     = $this->getFieldTypeName($field);
+        $label    = $this->getFieldLabelName($field);
+        $property = PropertyGenerator::fromArray([
+            'static'       => true,
+            'name'         => $name,
+            'visibility'   => PropertyGenerator::VISIBILITY_PROTECTED,
+            'docblock'     => [
+                'shortDescription' => "Extension field : $name $label $type = $number",
+                'tags'             => [
                     [
                         'name'        => 'var',
                         'description' => '\Protobuf\Extension',
@@ -73,7 +94,9 @@ class ExtensionGenerator extends BaseGenerator
             ]
         ]);
 
-        return [$extension];
+        $property->getDocblock()->setWordWrap(false);
+
+        return $property;
     }
 
     /**
@@ -81,53 +104,42 @@ class ExtensionGenerator extends BaseGenerator
      */
     public function generateMethods()
     {
-        $methods   = [];
-        $methods[] = $this->generateExtensionMethod();
-        $methods[] = $this->generateGetExtendeeMethod();
-        $methods[] = $this->generateGetNameMethod();
-        $methods[] = $this->generateGetTagMethod();
-        $methods[] = $this->generateReadFromMethod();
-        $methods[] = $this->generateWriteToMethod();
-        $methods[] = $this->generateSerializedSizeMethod();
+        $extensions = $this->proto->getExtensionList() ?: [];
+        $methods    = [$this->generateRegisterAllExtensionsMethod()];
+
+        foreach ($extensions as $field) {
+            $methods[] = $this->generateExtensionMethod($field);
+        }
 
         return $methods;
     }
 
     /**
+     * @param \google\protobuf\FieldDescriptorProto $field
+     *
      * @return string
      */
-    protected function generateExtensionMethod()
+    public function generateExtensionMethod(FieldDescriptorProto $field)
     {
-        $body[] = 'if (self::$extension !== null) {';
-        $body[] = '    return self::$extension;';
-        $body[] = '}';
-        $body[] = null;
-        $body[] = 'return self::$extension = new self();';
-
-        return MethodGenerator::fromArray([
-            'static'     => true,
-            'body'       => implode(PHP_EOL, $body),
-            'name'       => 'extension',
-            'docblock'   => [
-                'shortDescription' => '\Protobuf\Extension'
-            ]
-        ]);
-    }
-
-    /**
-     * @return string
-     */
-    protected function generateGetExtendeeMethod()
-    {
-        $extendee   = $this->getNamespace($this->proto->getExtendee());
-        $body       = sprintf('return %s;', var_export($extendee, true));
+        $fieldName  = $field->getName();
+        $bodyGen    = new ExtensionMethodBodyGenerator($this->proto, $this->options, $this->package);
+        $body       = implode(PHP_EOL, $bodyGen->generateBody($field));
         $method     = MethodGenerator::fromArray([
+            'static'     => true,
             'body'       => $body,
-            'name'       => 'getExtendee',
+            'name'       => $fieldName,
             'docblock'   => [
-                'shortDescription' => '{@inheritdoc}'
+                'shortDescription' => "Extension field : $fieldName",
+                'tags'             => [
+                    [
+                        'name'        => 'return',
+                        'description' => '\Protobuf\Extension',
+                    ]
+                ]
             ]
         ]);
+
+        $method->getDocblock()->setWordWrap(false);
 
         return $method;
     }
@@ -135,207 +147,59 @@ class ExtensionGenerator extends BaseGenerator
     /**
      * @return string
      */
-    protected function generateGetNameMethod()
+    public function generateRegisterAllExtensionsMethod()
     {
-        $fieldName = $this->proto->getName();
-        $body      = sprintf('return %s;', var_export($fieldName, true));
-        $method    = MethodGenerator::fromArray([
+        $lines      = [];
+        $fields     = [];
+        $extensions = $this->proto->getExtensionList() ?: [];
+        $messages   = $this->proto->getMessageTypeList() ?: [];
+
+        foreach ($messages as $message) {
+
+            if ( ! $message->hasExtensionList()) {
+                continue;
+            }
+
+            foreach ($message->getExtensionList() as $extension) {
+                $fields[] = $extension;
+            }
+        }
+
+        foreach ($extensions as $field) {
+            $fields[] = $field;
+        }
+
+        foreach ($fields as $field) {
+            $name  = $field->getName();
+            $type  = $field->getTypeName();
+            $class = $type ? $this->getNamespace($type) : 'self';
+            $sttm  = '$registry->add(' . $class . '::' . $name. '());';
+
+            $lines[] = $sttm;
+        }
+
+        $body       = implode(PHP_EOL, $lines);
+        $method     = MethodGenerator::fromArray([
+            'static'     => true,
             'body'       => $body,
-            'name'       => 'getName',
-            'docblock'   => [
-                'shortDescription' => '{@inheritdoc}'
-            ]
-        ]);
-
-        return $method;
-    }
-
-    /**
-     * @return string
-     */
-    protected function generateGetTagMethod()
-    {
-        $fieldTag = $this->proto->getNumber();
-        $body     = sprintf('return %s;', var_export($fieldTag, true));
-        $method   = MethodGenerator::fromArray([
-            'body'       => $body,
-            'name'       => 'getTag',
-            'docblock'   => [
-                'shortDescription' => '{@inheritdoc}'
-            ]
-        ]);
-
-        return $method;
-    }
-
-    /**
-     * @return string
-     */
-    protected function generateReadFromMethod()
-    {
-        $fieldTag = $this->proto->getNumber();
-        $body     = implode(PHP_EOL, $this->generateReadFromMethodBody());
-        $method   = MethodGenerator::fromArray([
-            'body'       => $body,
-            'name'       => 'readFrom',
+            'name'       => 'registerAllExtensions',
             'parameters' => [
                 [
-                    'name' => 'context',
-                    'type' => '\Protobuf\ReadContext',
-                ],
-                [
-                    'name' => 'wire',
-                    'type' => 'int',
+                    'name' => 'registry',
+                    'type' => '\Protobuf\ExtensionRegistry'
                 ]
             ],
             'docblock'   => [
-                'shortDescription' => '{@inheritdoc}'
-            ]
-        ]);
-
-        return $method;
-    }
-
-    /**
-     * @return string[]
-     */
-    protected function generateReadFromMethodBody()
-    {
-        $body  = [];
-        $lines = $this->generateFieldReadStatement();
-
-        $body[] = '$reader = $context->getReader();';
-        $body[] = '$length = $context->getLength();';
-        $body[] = '$stream = $context->getStream();';
-        $body[] = null;
-
-        return array_merge($body, $lines);
-    }
-
-    /**
-     * @return string
-     */
-    protected function generateWriteToMethod()
-    {
-        $fieldTag = $this->proto->getNumber();
-        $body     = implode(PHP_EOL, $this->generateWriteFromMethodBody());
-        $method   = MethodGenerator::fromArray([
-            'body'       => $body,
-            'name'       => 'writeTo',
-            'parameters' => [
-                [
-                    'name' => 'context',
-                    'type' => '\Protobuf\WriteContext',
-                ],
-                [
-                    'name' => 'value',
-                    'type' => 'mixed',
+                'shortDescription' => "Register all extensions",
+                'tags'             => [
+                    [
+                        'name'        => 'param',
+                        'description' => '\Protobuf\ExtensionRegistry',
+                    ]
                 ]
-            ],
-            'docblock'   => [
-                'shortDescription' => '{@inheritdoc}'
             ]
         ]);
 
         return $method;
-    }
-
-    /**
-     * @return string[]
-     */
-    protected function generateWriteFromMethodBody()
-    {
-        $body  = [];
-        $lines = $this->generateFieldWriteStatement($this->proto);
-
-        $body[] = '$stream      = $context->getStream();';
-        $body[] = '$writer      = $context->getWriter();';
-        $body[] = '$sizeContext = $context->getComputeSizeContext();';
-        $body[] = null;
-
-        return array_merge($body, $lines);
-    }
-
-    /**
-     * @return string
-     */
-    protected function generateSerializedSizeMethod()
-    {
-        $fieldTag = $this->proto->getNumber();
-        $body     = implode(PHP_EOL, $this->generateSerializedSizeMethodBody());
-        $method   = MethodGenerator::fromArray([
-            'body'       => $body,
-            'name'       => 'serializedSize',
-            'parameters' => [
-                [
-                    'name' => 'context',
-                    'type' => '\Protobuf\ComputeSizeContext',
-                ],
-                [
-                    'name' => 'value',
-                    'type' => 'mixed',
-                ]
-            ],
-            'docblock'   => [
-                'shortDescription' => '{@inheritdoc}'
-            ]
-        ]);
-
-        return $method;
-    }
-
-    /**
-     * @return string[]
-     */
-    protected function generateSerializedSizeMethodBody()
-    {
-        $body  = [];
-        $lines = $this->generateFieldSizeStatement($this->proto);
-
-        $body[] = '$calculator = $context->getSizeCalculator();';
-        $body[] = '$size       = 0;';
-        $body[] = null;
-        $body   = array_merge($body, $lines);
-        $body[] = null;
-        $body[] = 'return $size;';
-
-        return $body;
-    }
-
-    /**
-     * @return string[]
-     */
-    protected function generateFieldReadStatement()
-    {
-        $generator = new ReadFieldStatementGenerator($this->proto, $this->options, $this->package);
-
-        $generator->setBreakMode(ReadFieldStatementGenerator::BREAK_MODE_RETURN);
-        $generator->setTargetVar('$value');
-
-        return $generator->generateFieldReadStatement($this->proto);
-    }
-
-    /**
-     * @return string[]
-     */
-    protected function generateFieldWriteStatement()
-    {
-        $generator = new WriteFieldStatementGenerator($this->proto, $this->options, $this->package);
-
-        $generator->setTargetVar('$value');
-
-        return $generator->generateFieldWriteStatement($this->proto);
-    }
-
-    /**
-     * @return string[]
-     */
-    protected function generateFieldSizeStatement()
-    {
-        $generator = new SerializedSizeFieldStatementGenerator($this->proto, $this->options, $this->package);
-
-        $generator->setTargetVar('$value');
-
-        return $generator->generateFieldSizeStatement($this->proto);
     }
 }

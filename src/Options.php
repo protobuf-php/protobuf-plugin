@@ -28,7 +28,7 @@ class Options
     /**
      * @var bool
      */
-    protected $skipImported = false;
+    protected $generateImported = false;
 
     /**
      * @return string
@@ -49,9 +49,9 @@ class Options
     /**
      * @return bool
      */
-    public function getSkipImported()
+    public function getGenerateImported()
     {
-        return $this->skipImported;
+        return $this->generateImported;
     }
 
     /**
@@ -79,8 +79,8 @@ class Options
             $options->package = trim($params['package']);
         }
 
-        if (isset($params['skip-imported'])) {
-            $options->skipImported = (bool) $params['skip-imported'];
+        if (isset($params['generate-imported'])) {
+            $options->generateImported = (bool) $params['generate-imported'];
         }
 
         if (isset($params['psr4'])) {

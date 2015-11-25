@@ -438,7 +438,7 @@ class Person extends \Protobuf\AbstractMessage
     {
         $config  = $configuration ?: \Protobuf\Configuration::getInstance();
         $context = $config->createReadContext($stream);
-        $message = new \ProtobufCompilerTest\Protos\Person();
+        $message = new self();
 
         $message->readFrom($context);
 

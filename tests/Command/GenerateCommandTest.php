@@ -37,9 +37,9 @@ class GenerateCommandTest extends TestCase
                 $this->equalTo(['./file.proto']),
                 $this->equalTo(['path-to-include']),
                 $this->equalTo([
-                    'skip-imported' => 1,
-                    'verbose'       => 1,
-                    'psr4'          => ['ProtobufTest\Protos']
+                    'generate-imported' => 1,
+                    'verbose'           => 1,
+                    'psr4'              => ['ProtobufTest\Protos']
                 ])
             );
 
@@ -66,12 +66,12 @@ class GenerateCommandTest extends TestCase
         $commandTester = new CommandTester($command);
 
         $commandTester->execute([
-            '--skip-imported' => true,
-            '--out'           => './src',
-            'protos'          => ['./file.proto'],
-            '--protoc'        => '/usr/bin/protoc',
-            '--include'       => ['path-to-include'],
-            '--psr4'          => ['ProtobufTest\Protos'],
+            '--generate-imported' => true,
+            '--out'               => './src',
+            'protos'              => ['./file.proto'],
+            '--protoc'            => '/usr/bin/protoc',
+            '--include'           => ['path-to-include'],
+            '--psr4'              => ['ProtobufTest\Protos'],
         ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
         $this->assertContains('Generating protos with protoc -- "protoc command"', $commandTester->getDisplay());

@@ -45,7 +45,6 @@ class Generator extends BaseGenerator
     public function generate()
     {
         $messages   = $this->proto->getMessageTypeList() ?: [];
-        $extensions = $this->proto->getExtensionList() ?: [];
         $enums      = $this->proto->getEnumTypeList() ?: [];
         $services   = $this->proto->getServiceList() ?: [];
         $package    = $this->options->getPackage();
@@ -56,7 +55,10 @@ class Generator extends BaseGenerator
         $result += $this->generateEnums($enums, $package);
         $result += $this->generateServices($services, $package);
         $result += $this->generateMessages($messages, $package);
-        $result += $this->generateExtensions($extensions, $package);
+
+        if ($this->proto->hasExtensionList() && $this->hasMessageExtension($messages)) {
+            $result += $this->generateExtension($package);
+        }
 
         foreach ($result as $class => $content) {
             $fqcn = trim($this->getNamespace($class), '\\');
@@ -94,24 +96,37 @@ class Generator extends BaseGenerator
     }
 
     /**
-     * @param \Traversable $extensions
-     * @param string       $package
+     * @param string $package
      *
      * @return array
      */
-    public function generateExtensions($extensions, $package)
+    public function generateExtension($package)
     {
-        $result = [];
+        $generator = new ExtensionGenerator($this->proto, $this->options, $package);
+        $result    = [];
 
-        foreach ($extensions as $extension) {
-            $name    = Inflector::classify($extension->getName());
-            $class   = $extension->getExtendee() . '.' . $name;
-            $content = $this->generateExtensionClass($extension, $package);
+        $class   = $package . '.Extension';
+        $content = $generator->generate($package);
 
-            $result[$class] = $content;
-        }
+        $result[$class] = $content;
 
         return $result;
+    }
+
+    /**
+     * @param \Traversable $messages
+     *
+     * @return boolean
+     */
+    public function hasMessageExtension($messages)
+    {
+        foreach ($messages as $message) {
+            if ($message->hasExtensionList()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -136,7 +151,6 @@ class Generator extends BaseGenerator
 
             $result += $this->generateEnums($enums, $class);
             $result += $this->generateMessages($messages, $class);
-            $result += $this->generateExtensions($extensions, $class);
         }
 
         return $result;
@@ -220,20 +234,6 @@ class Generator extends BaseGenerator
     public function generateMessageClass(DescriptorProto $message, $package)
     {
         $generator = new MessageGenerator($message, $this->options, $package);
-        $content   = $generator->generate();
-
-        return $content;
-    }
-
-    /**
-     * @param \google\protobuf\FieldDescriptorProto $extension
-     * @param string                                $package
-     *
-     * @return string
-     */
-    public function generateExtensionClass(FieldDescriptorProto $extension, $package)
-    {
-        $generator = new ExtensionGenerator($extension, $this->options, $package);
         $content   = $generator->generate();
 
         return $content;
