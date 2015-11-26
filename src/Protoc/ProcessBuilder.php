@@ -31,13 +31,6 @@ class ProcessBuilder
     protected $version;
 
     /**
-     * @var array[]
-     */
-    protected $includes = [
-        '../../vendor/protobuf-php/google-protobuf-proto/src'
-    ];
-
-    /**
      * @param string $plugin
      * @param string $protoc
      * @param string $version
@@ -115,18 +108,6 @@ class ProcessBuilder
                 : dirname($firstProto);
 
             $builder->add(sprintf('--proto_path=%s', $protoPath));
-        }
-
-        foreach ($this->includes as $dir) {
-
-            if ( ! is_dir(__DIR__ . '/' . $dir)) {
-                continue;
-            }
-
-            $realpath = realpath(__DIR__ . '/' . $dir);
-            $argument = sprintf('--proto_path=%s', $realpath);
-
-            $builder->add($argument);
         }
 
         // Protoc will pass custom arguments to the plugin if they are given
