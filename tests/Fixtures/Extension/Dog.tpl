@@ -32,7 +32,7 @@ namespace ProtobufTest\Protos\Extension;
  *   }
  * )
  */
-class Dog extends \Protobuf\AbstractMessage implements \Protobuf\ExtensionMessage
+class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
 {
 
     /**
@@ -48,7 +48,7 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\ExtensionMessag
     protected $unknownFieldSet = null;
 
     /**
-     * @var \Protobuf\ExtensionFieldMap
+     * @var \Protobuf\Extension\ExtensionFieldMap
      */
     protected $extensions = null;
 
@@ -112,7 +112,7 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\ExtensionMessag
             return $size;
         };
 
-        return self::$animal = new \Protobuf\Extension('\\ProtobufTest\\Protos\\Extension\\Animal', 'animal', 101, $readCallback, $writeCallback, $sizeCallback);
+        return self::$animal = new \Protobuf\Extension\ExtensionField('\\ProtobufTest\\Protos\\Extension\\Animal', 'animal', 101, $readCallback, $writeCallback, $sizeCallback);
     }
 
     /**
@@ -158,7 +158,7 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\ExtensionMessag
     /**
      * {@inheritdoc}
      *
-     * @return \Protobuf\ExtensionFieldMap
+     * @return \Protobuf\Extension\ExtensionFieldMap
      */
     public function extensions()
     {
@@ -166,7 +166,7 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\ExtensionMessag
             return $this->extensions;
         }
 
-        return $this->extensions = new \Protobuf\ExtensionFieldMap(__CLASS__);
+        return $this->extensions = new \Protobuf\Extension\ExtensionFieldMap(__CLASS__);
     }
 
     /**

@@ -45,7 +45,7 @@ class ExtensionMethodBodyGenerator extends BaseGenerator
         $body[] = null;
         $body   = array_merge($body, $callbacks);
         $body[] = null;
-        $body[] = 'return self::$' . $name . ' = new \Protobuf\Extension(' . implode(', ', $arguments) . ');';
+        $body[] = 'return self::$' . $name . ' = new \Protobuf\Extension\ExtensionField(' . implode(', ', $arguments) . ');';
 
         return $body;
     }

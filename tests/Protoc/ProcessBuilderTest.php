@@ -28,6 +28,8 @@ class ProcessBuilderTest extends TestCase
         $process = $builder->createProcess($out, [$proto], [$include], ['verbose' => 1]);
         $command = $process->getCommandLine();
 
+        $builder->setIncludeDescriptors(true);
+
         $this->assertStringStartsWith("'vfs://root/protoc'", $command);
         $this->assertStringEndsWith("'vfs://root/file.proto'", $command);
         $this->assertContains('--plugin=protoc-gen-php=vfs://root/plugin', $command);
@@ -50,6 +52,8 @@ class ProcessBuilderTest extends TestCase
         $builder = new ProcessBuilder($plugin, $protoc);
         $process = $builder->createProcess($out, [$proto], [], ['verbose' => 1]);
         $command = $process->getCommandLine();
+
+        $builder->setIncludeDescriptors(true);
 
         $this->assertStringStartsWith("'vfs://root/protoc'", $command);
         $this->assertStringEndsWith("'vfs://root/proto/file.proto'", $command);
@@ -99,6 +103,42 @@ class ProcessBuilderTest extends TestCase
             ->willReturn('libprotoc 2.6.1' . PHP_EOL);
 
         $builder->assertVersion();
+    }
+
+    public function testFindDescriptorsPath()
+    {
+        $path    = $this->root->url();
+        $protoc  = 'protoc';
+        $plugin  = './bin/protobuf-plugin';
+        $builder = new ProcessBuilder($plugin, $protoc);
+        $paths   = [
+            $path . '/not-found',
+            $path . '/found'
+        ];
+
+        $this->root->addChild(vfsStream::newDirectory('found'));
+        $this->setPropertyValue($builder, 'descriptorsPaths', $paths);
+        $this->assertEquals($path . '/found', $this->invokeMethod($builder, 'findDescriptorsPath'));
+    }
+
+    /**
+     * @expectedException RuntimeException
+     * @expectedExceptionMessage Unable to find "protobuf-php/google-protobuf-proto".
+     */
+
+    public function testFindDescriptorsPathException()
+    {
+        $path    = $this->root->url();
+        $protoc  = 'protoc';
+        $plugin  = './bin/protobuf-plugin';
+        $builder = new ProcessBuilder($plugin, $protoc);
+        $paths   = [
+            $path . '/not-found',
+            $path . '/also-not-found'
+        ];
+
+        $this->setPropertyValue($builder, 'descriptorsPaths', $paths);
+        $this->invokeMethod($builder, 'findDescriptorsPath');
     }
 
     /**

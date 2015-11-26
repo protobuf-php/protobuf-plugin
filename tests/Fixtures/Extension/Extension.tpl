@@ -9,7 +9,7 @@ namespace ProtobufTest\Protos\Extension;
 /**
  * Protobuf extension : ProtobufTest\Protos\Extension
  */
-class Extension implements \Protobuf\ExtensionMessage
+class Extension implements \Protobuf\Extension
 {
 
     /**
@@ -29,9 +29,9 @@ class Extension implements \Protobuf\ExtensionMessage
     /**
      * Register all extensions
      *
-     * @param \Protobuf\ExtensionRegistry
+     * @param \Protobuf\Extension\ExtensionRegistry
      */
-    public static function registerAllExtensions(\Protobuf\ExtensionRegistry $registry)
+    public static function registerAllExtensions(\Protobuf\Extension\ExtensionRegistry $registry)
     {
         $registry->add(\ProtobufTest\Protos\Extension\Dog::animal());
         $registry->add(self::habitat());
@@ -80,7 +80,7 @@ class Extension implements \Protobuf\ExtensionMessage
             return $size;
         };
 
-        return self::$habitat = new \Protobuf\Extension('\\ProtobufTest\\Protos\\Extension\\Animal', 'habitat', 200, $readCallback, $writeCallback, $sizeCallback);
+        return self::$habitat = new \Protobuf\Extension\ExtensionField('\\ProtobufTest\\Protos\\Extension\\Animal', 'habitat', 200, $readCallback, $writeCallback, $sizeCallback);
     }
 
     /**
@@ -125,7 +125,7 @@ class Extension implements \Protobuf\ExtensionMessage
             return $size;
         };
 
-        return self::$verbose = new \Protobuf\Extension('\\ProtobufTest\\Protos\\Extension\\Command', 'verbose', 200, $readCallback, $writeCallback, $sizeCallback);
+        return self::$verbose = new \Protobuf\Extension\ExtensionField('\\ProtobufTest\\Protos\\Extension\\Command', 'verbose', 200, $readCallback, $writeCallback, $sizeCallback);
     }
 
 

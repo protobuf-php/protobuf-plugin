@@ -56,7 +56,7 @@ class Generator extends BaseGenerator
         $result += $this->generateServices($services, $package);
         $result += $this->generateMessages($messages, $package);
 
-        if ($this->proto->hasExtensionList() && $this->hasMessageExtension($messages)) {
+        if ($this->proto->hasExtensionList() || $this->hasMessageExtension($messages)) {
             $result += $this->generateExtension($package);
         }
 

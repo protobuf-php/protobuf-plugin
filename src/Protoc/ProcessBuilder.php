@@ -3,6 +3,7 @@
 namespace Protobuf\Compiler\Protoc;
 
 use SplFileInfo;
+use RuntimeException;
 use InvalidArgumentException;
 use UnexpectedValueException;
 use Symfony\Component\Process\Process;
@@ -31,6 +32,19 @@ class ProcessBuilder
     protected $version;
 
     /**
+     * @var bool
+     */
+    protected $includeDescriptors = false;
+
+    /**
+     * @var array
+     */
+    protected $descriptorsPaths = [
+        __DIR__ . '/../../../google-protobuf-proto/src',
+        __DIR__ . '/../../vendor/protobuf-php/google-protobuf-proto/src',
+    ];
+
+    /**
      * @param string $plugin
      * @param string $protoc
      * @param string $version
@@ -40,6 +54,14 @@ class ProcessBuilder
         $this->plugin  = $plugin;
         $this->protoc  = $protoc;
         $this->version = $version;
+    }
+
+    /**
+     * @param bool $flag
+     */
+    public function setIncludeDescriptors($flag)
+    {
+        $this->includeDescriptors = $flag;
     }
 
     /**
@@ -99,6 +121,10 @@ class ProcessBuilder
 
         foreach ($include as $i) {
             $builder->add(sprintf('--proto_path=%s', $i));
+        }
+
+        if ($this->includeDescriptors) {
+            $builder->add(sprintf('--proto_path=%s', $this->findDescriptorsPath()));
         }
 
         if (empty($include)) {
@@ -170,6 +196,24 @@ class ProcessBuilder
         }
 
         return $realpath;
+    }
+
+    /**
+     * @return string
+     *
+     * @throws \RuntimeException
+     */
+    protected function findDescriptorsPath()
+    {
+        foreach ($this->descriptorsPaths as $path) {
+            if ( ! is_dir($path)) {
+                continue;
+            }
+
+            return realpath($path) ?: $path;
+        }
+
+        throw new RuntimeException('Unable to find "protobuf-php/google-protobuf-proto".');
     }
 
     /**

@@ -49,7 +49,8 @@ class GenerateCommand extends Command
             ->addOption('protoc', null, InputOption::VALUE_REQUIRED, 'protoc compiler executable path', 'protoc')
             ->addOption('out', 'o', InputOption::VALUE_REQUIRED, 'destination directory for generated files', './')
             ->addOption('psr4', null, InputOption::VALUE_IS_ARRAY|InputOption::VALUE_REQUIRED, 'psr-4 base directory')
-            ->addOption('include', 'i', InputOption::VALUE_IS_ARRAY|InputOption::VALUE_REQUIRED, 'define an include path');
+            ->addOption('include', 'i', InputOption::VALUE_IS_ARRAY|InputOption::VALUE_REQUIRED, 'define an include path')
+            ->addOption('include-descriptors', null, InputOption::VALUE_NONE, 'add google-protobuf-proto descriptors to include path');
     }
 
     /**
@@ -75,6 +76,10 @@ class GenerateCommand extends Command
 
         if ($psr4) {
             $args['psr4'] = $psr4;
+        }
+
+        if ($input->getOption('include-descriptors')) {
+            $builder->setIncludeDescriptors(true);
         }
 
         $builder->assertVersion();

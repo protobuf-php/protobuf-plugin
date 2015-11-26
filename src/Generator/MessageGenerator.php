@@ -56,7 +56,7 @@ class MessageGenerator extends BaseGenerator
         ]);
 
         if ($this->proto->hasExtensionList()) {
-            $class->setImplementedInterfaces(['\Protobuf\ExtensionMessage']);
+            $class->setImplementedInterfaces(['\Protobuf\Extension']);
         }
 
         return $this->generateFileContent($class);
@@ -98,7 +98,7 @@ class MessageGenerator extends BaseGenerator
                 'tags'   => [
                     [
                         'name'        => 'var',
-                        'description' => '\Protobuf\ExtensionFieldMap',
+                        'description' => '\Protobuf\Extension\ExtensionFieldMap',
                     ]
                 ]
             ]
@@ -310,7 +310,7 @@ class MessageGenerator extends BaseGenerator
         $lines[] = '    return $this->' . $fieldName . ';';
         $lines[] = '}';
         $lines[] = null;
-        $lines[] = 'return $this->' . $fieldName . ' = new \Protobuf\ExtensionFieldMap(__CLASS__);';
+        $lines[] = 'return $this->' . $fieldName . ' = new \Protobuf\Extension\ExtensionFieldMap(__CLASS__);';
 
         return MethodGenerator::fromArray([
             'name'       => 'extensions',
@@ -320,7 +320,7 @@ class MessageGenerator extends BaseGenerator
                 'tags'             => [
                     [
                         'name'        => 'return',
-                        'description' => '\Protobuf\ExtensionFieldMap',
+                        'description' => '\Protobuf\Extension\ExtensionFieldMap',
                     ]
                 ]
             ]

@@ -4,9 +4,13 @@ namespace Protobuf\Compiler;
 
 use Protobuf\Stream;
 use Protobuf\Configuration;
+
 use Psr\Log\LoggerInterface;
+
 use Protobuf\Compiler\Options;
 use Protobuf\Compiler\Generator;
+
+use google\protobuf\php\Extension;
 use google\protobuf\FileDescriptorProto;
 use google\protobuf\compiler\CodeGeneratorRequest;
 use google\protobuf\compiler\CodeGeneratorResponse;
@@ -36,7 +40,7 @@ class Compiler
     public function __construct(LoggerInterface $logger, Configuration $config = null)
     {
         $this->logger = $logger;
-        $this->config = $config ?: Configuration::getInstance();
+        $this->config = $config ?: self::defaultConfig();
     }
 
     /**
@@ -107,5 +111,20 @@ class Compiler
 
         // Finally serialize the response object
         return $response->toStream($this->config);
+    }
+
+    /**
+     * @return \Protobuf\Configuration
+     */
+    public static function defaultConfig()
+    {
+        $config   = Configuration::getInstance();
+        $registry = $config->getExtensionRegistry();
+
+        //require_once '/Users/fsilva/backup/workspace/php/protobuf/google-protobuf-proto/src/php/Extension.php';
+
+        Extension::registerAllExtensions($registry);
+
+        return $config;
     }
 }

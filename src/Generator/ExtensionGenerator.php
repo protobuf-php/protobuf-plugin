@@ -42,7 +42,7 @@ class ExtensionGenerator extends BaseGenerator
         $class            = ClassGenerator::fromArray([
             'name'                  => 'Extension',
             'namespacename'         => $namespace,
-            'implementedinterfaces' => ['\Protobuf\ExtensionMessage'],
+            'implementedinterfaces' => ['\Protobuf\Extension'],
             'properties'            => $this->generateFields(),
             'methods'               => $this->generateMethods(),
             'docblock'              => [
@@ -186,7 +186,7 @@ class ExtensionGenerator extends BaseGenerator
             'parameters' => [
                 [
                     'name' => 'registry',
-                    'type' => '\Protobuf\ExtensionRegistry'
+                    'type' => '\Protobuf\Extension\ExtensionRegistry'
                 ]
             ],
             'docblock'   => [
@@ -194,7 +194,7 @@ class ExtensionGenerator extends BaseGenerator
                 'tags'             => [
                     [
                         'name'        => 'param',
-                        'description' => '\Protobuf\ExtensionRegistry',
+                        'description' => '\Protobuf\Extension\ExtensionRegistry',
                     ]
                 ]
             ]
