@@ -116,8 +116,9 @@ class ProcessBuilderTest extends TestCase
             $path . '/found'
         ];
 
+        $builder->setDescriptorPaths($paths);
+
         $this->root->addChild(vfsStream::newDirectory('found'));
-        $this->setPropertyValue($builder, 'descriptorsPaths', $paths);
         $this->assertEquals($path . '/found', $this->invokeMethod($builder, 'findDescriptorsPath'));
     }
 
@@ -137,7 +138,8 @@ class ProcessBuilderTest extends TestCase
             $path . '/also-not-found'
         ];
 
-        $this->setPropertyValue($builder, 'descriptorsPaths', $paths);
+        $builder->setDescriptorPaths($paths);
+
         $this->invokeMethod($builder, 'findDescriptorsPath');
     }
 

@@ -39,10 +39,7 @@ class ProcessBuilder
     /**
      * @var array
      */
-    protected $descriptorsPaths = [
-        __DIR__ . '/../../../google-protobuf-proto/src',
-        __DIR__ . '/../../vendor/protobuf-php/google-protobuf-proto/src',
-    ];
+    protected $descriptorPaths = [];
 
     /**
      * @param string $plugin
@@ -62,6 +59,14 @@ class ProcessBuilder
     public function setIncludeDescriptors($flag)
     {
         $this->includeDescriptors = $flag;
+    }
+
+    /**
+     * @param array $paths
+     */
+    public function setDescriptorPaths($paths)
+    {
+        $this->descriptorPaths = $paths;
     }
 
     /**
@@ -205,7 +210,7 @@ class ProcessBuilder
      */
     protected function findDescriptorsPath()
     {
-        foreach ($this->descriptorsPaths as $path) {
+        foreach ($this->descriptorPaths as $path) {
             if ( ! is_dir($path)) {
                 continue;
             }

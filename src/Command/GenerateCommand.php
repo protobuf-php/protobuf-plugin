@@ -80,6 +80,10 @@ class GenerateCommand extends Command
 
         if ($input->getOption('include-descriptors')) {
             $builder->setIncludeDescriptors(true);
+            $builder->setDescriptorPaths([
+                __DIR__ . '/../../../google-protobuf-proto/src',
+                __DIR__ . '/../../vendor/protobuf-php/google-protobuf-proto/src'
+            ]);
         }
 
         $builder->assertVersion();
