@@ -2,14 +2,16 @@
 
 namespace Protobuf\Compiler\Generator\Message;
 
-use Protobuf\WireFormat;
 use InvalidArgumentException;
-use Protobuf\Compiler\Options;
+
+use Protobuf\WireFormat;
+use Protobuf\Compiler\Entity;
+use Protobuf\Compiler\Generator\BaseGenerator;
+
 use google\protobuf\DescriptorProto;
 use google\protobuf\FieldDescriptorProto;
 use google\protobuf\FieldDescriptorProto\Type;
 use google\protobuf\FieldDescriptorProto\Label;
-use Protobuf\Compiler\Generator\BaseGenerator;
 
 /**
  * Message Field Read Statement Generator
@@ -48,11 +50,12 @@ class ReadFieldStatementGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity             $entity
      * @param \google\protobuf\FieldDescriptorProto $field
      *
      * @return string[]
      */
-    public function generateFieldReadStatement(FieldDescriptorProto $field)
+    public function generateFieldReadStatement(Entity $entity, FieldDescriptorProto $field)
     {
         $body      = [];
         $reference = null;

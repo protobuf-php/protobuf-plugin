@@ -3,12 +3,13 @@
 namespace Protobuf\Compiler\Generator\Message;
 
 use Protobuf\WireFormat;
-use Protobuf\Compiler\Options;
+use Protobuf\Compiler\Entity;
+use Protobuf\Compiler\Generator\BaseGenerator;
+
 use google\protobuf\DescriptorProto;
 use google\protobuf\FieldDescriptorProto;
 use google\protobuf\FieldDescriptorProto\Type;
 use google\protobuf\FieldDescriptorProto\Label;
-use Protobuf\Compiler\Generator\BaseGenerator;
 
 /**
  * Message writeTo Body Generator
@@ -18,26 +19,31 @@ use Protobuf\Compiler\Generator\BaseGenerator;
 class WriteToMethodBodyGenerator extends BaseGenerator
 {
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string[]
      */
-    public function generateBody()
+    public function generateBody(Entity $entity)
     {
+        $descriptor = $entity->getDescriptor();
+        $fields     = $descriptor->getFieldList() ?: [];
+
         $body[] = '$stream      = $context->getStream();';
         $body[] = '$writer      = $context->getWriter();';
         $body[] = '$sizeContext = $context->getComputeSizeContext();';
         $body[] = null;
 
-        foreach (($this->proto->getFieldList() ?: []) as $field) {
-            $lines = $this->generateRequiredFieldException($field);
+        foreach ($fields as $field) {
+            $lines = $this->generateRequiredFieldException($entity, $field);
             $body  = array_merge($body, $lines);
         }
 
-        foreach (($this->proto->getFieldList() ?: []) as $field) {
-            $lines = $this->generateFieldCondition($field);
+        foreach ($fields as $field) {
+            $lines = $this->generateFieldCondition($entity, $field);
             $body  = array_merge($body, $lines, [null]);
         }
 
-        $extensionsField = $this->getUniqueFieldName($this->proto, 'extensions');
+        $extensionsField = $this->getUniqueFieldName($descriptor, 'extensions');
         $extensionsVar   = '$this->' . $extensionsField;
 
         $body[] = 'if (' . $extensionsVar . ' !== null) {';
@@ -50,11 +56,12 @@ class WriteToMethodBodyGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity             $entity
      * @param \google\protobuf\FieldDescriptorProto $field
      *
      * @return string[]
      */
-    public function generateRequiredFieldException(FieldDescriptorProto $field)
+    public function generateRequiredFieldException(Entity $entity, FieldDescriptorProto $field)
     {
         $name       = $field->getName();
         $label      = $field->getLabel();
@@ -65,7 +72,7 @@ class WriteToMethodBodyGenerator extends BaseGenerator
             return [];
         }
 
-        $class   = $this->getNamespace($this->package . '.' . $this->proto->getName());
+        $class   = $entity->getNamespacedName();
         $format  = 'Field "%s#%s" (tag %s) is required but has no value.';
         $message = var_export(sprintf($format, $class, $name, $tag), true);
 
@@ -78,16 +85,17 @@ class WriteToMethodBodyGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity             $entity
      * @param \google\protobuf\FieldDescriptorProto $field
      *
      * @return string[]
      */
-    public function generateFieldCondition(FieldDescriptorProto $field)
+    public function generateFieldCondition(Entity $entity, FieldDescriptorProto $field)
     {
         $body      = [];
         $fieldName = $field->getName();
         $format    = 'if ($this->%s !== null) {';
-        $sttm      = $this->generateFieldWriteStatement($field);
+        $sttm      = $this->generateFieldWriteStatement($entity, $field);
         $lines     = $this->addIndentation($sttm, 1);
 
         $body[] = sprintf($format, $fieldName);
@@ -98,14 +106,15 @@ class WriteToMethodBodyGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity            $entity
      * @param google\protobuf\FieldDescriptorProto $field
      *
      * @return string[]
      */
-    public function generateFieldWriteStatement(FieldDescriptorProto $field)
+    public function generateFieldWriteStatement(Entity $entity, FieldDescriptorProto $field)
     {
-        $generator = new WriteFieldStatementGenerator($this->proto, $this->options, $this->package);
-        $statement = $generator->generateFieldWriteStatement($field);
+        $generator = new WriteFieldStatementGenerator($this->context);
+        $statement = $generator->generateFieldWriteStatement($entity, $field);
 
         return $statement;
     }

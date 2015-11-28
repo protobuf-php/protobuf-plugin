@@ -2,10 +2,8 @@
 
 namespace Protobuf\Compiler\Generator\Message;
 
-use Protobuf\Message;
 use Protobuf\WireFormat;
-use Protobuf\Configuration;
-use Protobuf\Compiler\Options;
+use Protobuf\Compiler\Entity;
 use Protobuf\Binary\SizeCalculator;
 use Protobuf\Compiler\Generator\BaseGenerator;
 
@@ -35,11 +33,12 @@ class SerializedSizeFieldStatementGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity             $entity
      * @param \google\protobuf\FieldDescriptorProto $field
      *
      * @return string[]
      */
-    public function generateFieldSizeStatement(FieldDescriptorProto $field)
+    public function generateFieldSizeStatement(Entity $entity, FieldDescriptorProto $field)
     {
         $body     = [];
         $name     = $field->getName();

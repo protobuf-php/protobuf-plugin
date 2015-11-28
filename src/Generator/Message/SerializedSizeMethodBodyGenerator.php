@@ -2,17 +2,11 @@
 
 namespace Protobuf\Compiler\Generator\Message;
 
-use Protobuf\Message;
-use Protobuf\WireFormat;
-use Protobuf\Configuration;
-use Protobuf\Compiler\Options;
-use Protobuf\Binary\SizeCalculator;
+use Protobuf\Compiler\Entity;
 use Protobuf\Compiler\Generator\BaseGenerator;
 
 use google\protobuf\DescriptorProto;
 use google\protobuf\FieldDescriptorProto;
-use google\protobuf\FieldDescriptorProto\Type;
-use google\protobuf\FieldDescriptorProto\Label;
 
 /**
  * Message serializedSize Body Generator
@@ -22,21 +16,26 @@ use google\protobuf\FieldDescriptorProto\Label;
 class SerializedSizeMethodBodyGenerator extends BaseGenerator
 {
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string[]
      */
-    public function generateBody()
+    public function generateBody(Entity $entity)
     {
+        $descriptor = $entity->getDescriptor();
+        $fields     = $descriptor->getFieldList() ?: [];
+        $extLines   = $this->generateExtensionsSerializedSize($entity);
+
         $body[] = '$calculator = $context->getSizeCalculator();';
         $body[] = '$size       = 0;';
-
         $body[] = null;
 
-        foreach (($this->proto->getFieldList() ?: []) as $field) {
-            $lines = $this->generateFieldCondition($field);
+        foreach ($fields as $field) {
+            $lines = $this->generateFieldCondition($entity, $field);
             $body  = array_merge($body, $lines, [null]);
         }
 
-        $body   = array_merge($body, $this->generateExtensionsSerializedSize());
+        $body   = array_merge($body, $extLines);
         $body[] = null;
         $body[] = 'return $size;';
 
@@ -44,28 +43,31 @@ class SerializedSizeMethodBodyGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string[]
      */
-    public function generateExtensionsSerializedSize()
+    public function generateExtensionsSerializedSize(Entity $entity)
     {
-        $extensionsField = $this->getUniqueFieldName($this->proto, 'extensions');
-        $extensionsVar   = '$this->' . $extensionsField;
+        $descriptor      = $entity->getDescriptor();
+        $extensionsField = $this->getUniqueFieldName($descriptor, 'extensions');
 
-        $body[] = 'if (' . $extensionsVar . ' !== null) {';
-        $body[] = '    $size += ' . $extensionsVar . '->serializedSize($context);';
+        $body[] = 'if ($this->' . $extensionsField . ' !== null) {';
+        $body[] = '    $size += $this->' . $extensionsField . '->serializedSize($context);';
         $body[] = '}';
 
         return $body;
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity             $entity
      * @param \google\protobuf\FieldDescriptorProto $field
      *
      * @return string[]
      */
-    public function generateFieldCondition(FieldDescriptorProto $field)
+    public function generateFieldCondition(Entity $entity, FieldDescriptorProto $field)
     {
-        $sttm  = $this->generateFieldSizeStatement($field);
+        $sttm  = $this->generateFieldSizeStatement($entity, $field);
         $lines = $this->addIndentation($sttm, 1);
         $name  = $field->getName();
 
@@ -77,14 +79,15 @@ class SerializedSizeMethodBodyGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity             $entity
      * @param \google\protobuf\FieldDescriptorProto $field
      *
      * @return string[]
      */
-    public function generateFieldSizeStatement(FieldDescriptorProto $field)
+    public function generateFieldSizeStatement(Entity $entity, FieldDescriptorProto $field)
     {
-        $generator = new SerializedSizeFieldStatementGenerator($this->proto, $this->options, $this->package);
-        $statement = $generator->generateFieldSizeStatement($field);
+        $generator = new SerializedSizeFieldStatementGenerator($this->context);
+        $statement = $generator->generateFieldSizeStatement($entity, $field);
 
         return $statement;
     }

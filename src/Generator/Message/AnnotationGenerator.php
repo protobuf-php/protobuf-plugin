@@ -2,10 +2,11 @@
 
 namespace Protobuf\Compiler\Generator\Message;
 
-use Protobuf\Compiler\Options;
+use Protobuf\Compiler\Entity;
+use Protobuf\Compiler\Generator\BaseGenerator;
+
 use google\protobuf\DescriptorProto;
 use google\protobuf\FieldDescriptorProto;
-use Protobuf\Compiler\Generator\BaseGenerator;
 
 /**
  * Message annotations
@@ -15,22 +16,25 @@ use Protobuf\Compiler\Generator\BaseGenerator;
 class AnnotationGenerator extends BaseGenerator
 {
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string[]
      */
-    public function generateAnnotation()
+    public function generateAnnotation(Entity $entity)
     {
         $fields     = [];
         $extensions = [];
-        $package    = json_encode($this->package);
-        $name       = json_encode($this->proto->getName());
+        $descriptor = $entity->getDescriptor();
+        $name       = json_encode($entity->getName());
+        $package    = json_encode($entity->getPackage());
 
-        foreach (($this->proto->getFieldList() ?: []) as $field) {
+        foreach (($descriptor->getFieldList() ?: []) as $field) {
             $annot  = $this->generateFieldAnnotation($field);
             $annot  = $this->addIndentation($annot, 2, '  ');
             $fields = array_merge($fields, $annot);
         }
 
-        foreach (($this->proto->getExtensionList() ?: []) as $field) {
+        foreach (($descriptor->getExtensionList() ?: []) as $field) {
             $annot      = $this->generateFieldAnnotation($field);
             $annot      = $this->addIndentation($annot, 2, '  ');
             $extensions = array_merge($extensions, $annot);

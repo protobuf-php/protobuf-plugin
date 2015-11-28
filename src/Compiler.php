@@ -44,26 +44,6 @@ class Compiler
     }
 
     /**
-     * @param \google\protobuf\compiler\CodeGeneratorRequest $request
-     * @param \google\protobuf\FileDescriptorProto           $proto
-     *
-     * @return \Protobuf\Compiler\Options
-     */
-    protected function createOptions(CodeGeneratorRequest $request, FileDescriptorProto $proto)
-    {
-        $parameter = $request->getParameter();
-        $options   = [];
-
-        parse_str($parameter, $options);
-
-        if ( ! isset($options['package'])) {
-            $options['package'] = $proto->getPackage();
-        }
-
-        return Options::fromArray($options);
-    }
-
-    /**
      * @param \Protobuf\Stream $stream
      *
      * @return \Protobuf\Stream
@@ -71,46 +51,85 @@ class Compiler
     public function compile(Stream $stream)
     {
         // Parse the request
-        $response = new CodeGeneratorResponse();
-        $request  = CodeGeneratorRequest::fromStream($stream, $this->config);
+        $request   = CodeGeneratorRequest::fromStream($stream, $this->config);
+        $response  = new CodeGeneratorResponse();
+        $context   = $this->createContext($request);
+        $entities  = $context->getEntities();
+        $options   = $context->getOptions();
+        $generator = new Generator($context);
 
-        $protoList    = $request->getProtoFileList() ?: [];
-        $generateList = $request->hasFileToGenerateList()
-            ? $request->getFileToGenerateList()->getArrayCopy()
-            : [];
-
-        // Run each file
-        foreach ($protoList as $file) {
-
-            $options          = $this->createOptions($request, $file);
+        // Run each entity
+        foreach ($entities as $key => $entity) {
             $generateImported = $options->getGenerateImported();
+            $isFileToGenerate = $entity->isFileToGenerate();
 
             // Only compile those given to generate, not the imported ones
-            if ( ! $generateImported && ! in_array($file->getName(), $generateList)) {
-                $this->logger->info(sprintf('Skipping generation of imported file "%s"', $file->getName()));
+            if ( ! $generateImported && ! $isFileToGenerate) {
+                $this->logger->debug(sprintf('Skipping generation of imported class "%s"', $entity->getClass()));
 
                 continue;
             }
 
-            $this->logger->info(sprintf('Generating proto file "%s"', $file->getName()));
+            $this->logger->info(sprintf('Generating class "%s"', $entity->getClass()));
 
-            $generator = new Generator($file, $options);
-            $result    = $generator->generate($file);
+            $generator->visit($entity);
 
-            foreach ($result as $path => $content) {
-                $this->logger->info(sprintf('Generating class "%s"', $path));
+            $file    = new File();
+            $path    = $entity->getPath();
+            $content = $entity->getContent();
 
-                $file = new File();
+            $file->setName($path);
+            $file->setContent($content);
 
-                $file->setName($path);
-                $file->setContent($content);
-
-                $response->addFile($file);
-            }
+            $response->addFile($file);
         }
+
+        $this->logger->info('Generation completed.');
 
         // Finally serialize the response object
         return $response->toStream($this->config);
+    }
+
+    /**
+     * @param \google\protobuf\compiler\CodeGeneratorRequest $request
+     *
+     * @return \Protobuf\Compiler\Context
+     */
+    public function createContext(CodeGeneratorRequest $request)
+    {
+        $options  = $this->createOptions($request);
+        $entities = $this->createEntities($request);
+        $context  = new Context($entities, $options, $this->config);
+
+        return $context;
+    }
+
+    /**
+     * @param \google\protobuf\compiler\CodeGeneratorRequest $request
+     *
+     * @return array
+     */
+    protected function createEntities(CodeGeneratorRequest $request)
+    {
+        $builder  = new EntityBuilder($request);
+        $entities = $builder->buildEntities();
+
+        return $entities;
+    }
+
+    /**
+     * @param \google\protobuf\compiler\CodeGeneratorRequest $request
+     *
+     * @return \Protobuf\Compiler\Options
+     */
+    protected function createOptions(CodeGeneratorRequest $request)
+    {
+        $parameter = $request->getParameter();
+        $options   = [];
+
+        parse_str($parameter, $options);
+
+        return Options::fromArray($options);
     }
 
     /**
@@ -120,8 +139,6 @@ class Compiler
     {
         $config   = Configuration::getInstance();
         $registry = $config->getExtensionRegistry();
-
-        //require_once '/Users/fsilva/backup/workspace/php/protobuf/google-protobuf-proto/src/php/Extension.php';
 
         Extension::registerAllExtensions($registry);
 

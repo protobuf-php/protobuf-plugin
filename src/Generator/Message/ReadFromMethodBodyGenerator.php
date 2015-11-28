@@ -2,14 +2,16 @@
 
 namespace Protobuf\Compiler\Generator\Message;
 
-use Protobuf\WireFormat;
 use InvalidArgumentException;
-use Protobuf\Compiler\Options;
+
+use Protobuf\WireFormat;
+use Protobuf\Compiler\Entity;
+use Protobuf\Compiler\Generator\BaseGenerator;
+
 use google\protobuf\DescriptorProto;
 use google\protobuf\FieldDescriptorProto;
 use google\protobuf\FieldDescriptorProto\Type;
 use google\protobuf\FieldDescriptorProto\Label;
-use Protobuf\Compiler\Generator\BaseGenerator;
 
 /**
  * Message readFromStream Body Generator
@@ -19,11 +21,13 @@ use Protobuf\Compiler\Generator\BaseGenerator;
 class ReadFromMethodBodyGenerator extends BaseGenerator
 {
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string[]
      */
-    public function generateBody()
+    public function generateBody(Entity $entity)
     {
-        $innerLoop = $this->addIndentation($this->generateInnerLoop(), 1);
+        $innerLoop = $this->addIndentation($this->generateInnerLoop($entity), 1);
 
         $body[] = '$reader = $context->getReader();';
         $body[] = '$length = $context->getLength();';
@@ -44,10 +48,15 @@ class ReadFromMethodBodyGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string[]
      */
-    protected function generateInnerLoop()
+    protected function generateInnerLoop(Entity $entity)
     {
+        $descriptor = $entity->getDescriptor();
+        $fields     = $descriptor->getFieldList() ?: [];
+
         $body[] = null;
         $body[] = 'if ($stream->eof()) {';
         $body[] = '    break;';
@@ -62,13 +71,13 @@ class ReadFromMethodBodyGenerator extends BaseGenerator
         $body[] = '}';
         $body[] = null;
 
-        foreach (($this->proto->getFieldList() ?: []) as $field) {
-            $lines = $this->generateFieldCondition($field);
+        foreach ($fields as $field) {
+            $lines = $this->generateFieldCondition($entity, $field);
             $body  = array_merge($body, $lines);
         }
 
-        $unknowFieldName     = $this->getUniqueFieldName($this->proto, 'unknownFieldSet');
-        $extensionsFieldName = $this->getUniqueFieldName($this->proto, 'extensions');
+        $unknowFieldName     = $this->getUniqueFieldName($descriptor, 'unknownFieldSet');
+        $extensionsFieldName = $this->getUniqueFieldName($descriptor, 'extensions');
 
         $body[] = '$extensions = $context->getExtensionRegistry();';
         $body[] = '$extension  = $extensions ? $extensions->findByNumber(__CLASS__, $tag) : null;';
@@ -92,14 +101,15 @@ class ReadFromMethodBodyGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity            $entity
      * @param google\protobuf\FieldDescriptorProto $field
      *
      * @return string[]
      */
-    protected function generateFieldCondition(FieldDescriptorProto $field)
+    protected function generateFieldCondition(Entity $entity, FieldDescriptorProto $field)
     {
         $tag   = $field->getNumber();
-        $lines = $this->generateFieldReadStatement($field);
+        $lines = $this->generateFieldReadStatement($entity, $field);
         $lines = $this->addIndentation($lines, 1);
 
         $body[] = 'if ($tag === ' . $tag . ') {';
@@ -111,14 +121,15 @@ class ReadFromMethodBodyGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity             $entity
      * @param \google\protobuf\FieldDescriptorProto $field
      *
      * @return string[]
      */
-    protected function generateFieldReadStatement(FieldDescriptorProto $field)
+    protected function generateFieldReadStatement(Entity $entity, FieldDescriptorProto $field)
     {
-        $generator = new ReadFieldStatementGenerator($this->proto, $this->options, $this->package);
-        $statement = $generator->generateFieldReadStatement($field);
+        $generator = new ReadFieldStatementGenerator($this->context);
+        $statement = $generator->generateFieldReadStatement($entity, $field);
 
         return $statement;
     }

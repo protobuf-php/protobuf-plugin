@@ -9,16 +9,10 @@ namespace Protobuf\Compiler;
  */
 class Options
 {
-
     /**
      * @var string[]
      */
     protected $psr4;
-
-    /**
-     * @var string
-     */
-    protected $package;
 
     /**
      * @var bool
@@ -29,14 +23,6 @@ class Options
      * @var bool
      */
     protected $generateImported = false;
-
-    /**
-     * @return string
-     */
-    public function getPackage()
-    {
-        return $this->package;
-    }
 
     /**
      * @return string
@@ -73,10 +59,6 @@ class Options
 
         if (isset($params['verbose'])) {
             $options->verbose = (bool) $params['verbose'];
-        }
-
-        if (isset($params['package'])) {
-            $options->package = trim($params['package']);
         }
 
         if (isset($params['generate-imported'])) {

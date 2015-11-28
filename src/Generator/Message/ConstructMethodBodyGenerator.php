@@ -2,9 +2,7 @@
 
 namespace Protobuf\Compiler\Generator\Message;
 
-use Protobuf\Compiler\Options;
-use google\protobuf\DescriptorProto;
-use google\protobuf\FieldDescriptorProto;
+use Protobuf\Compiler\Entity;
 use Protobuf\Compiler\Generator\BaseGenerator;
 
 /**
@@ -15,12 +13,15 @@ use Protobuf\Compiler\Generator\BaseGenerator;
 class ConstructMethodBodyGenerator extends BaseGenerator
 {
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string[]
      */
-    public function generateBody()
+    public function generateBody(Entity $entity)
     {
-        $body   = [];
-        $fields = $this->proto->getFieldList() ?: [];
+        $body       = [];
+        $descriptor = $entity->getDescriptor();
+        $fields     = $descriptor->getFieldList() ?: [];
 
         foreach ($fields as $field) {
             if ( ! $field->hasDefaultValue()) {

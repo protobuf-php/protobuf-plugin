@@ -3,6 +3,8 @@
 namespace Protobuf\Compiler\Generator\Message;
 
 use google\protobuf\FieldDescriptorProto;
+
+use Protobuf\Compiler\Entity;
 use Protobuf\Compiler\Generator\BaseGenerator;
 
 /**
@@ -13,11 +15,12 @@ use Protobuf\Compiler\Generator\BaseGenerator;
 class ExtensionMethodBodyGenerator extends BaseGenerator
 {
     /**
+     * @param \Protobuf\Compiler\Entity             $entity
      * @param \google\protobuf\FieldDescriptorProto $field
      *
      * @return string[]
      */
-    public function generateBody(FieldDescriptorProto $field)
+    public function generateBody(Entity $entity, FieldDescriptorProto $field)
     {
         $name     = $field->getName();
         $tag      = $field->getNumber();
@@ -26,9 +29,9 @@ class ExtensionMethodBodyGenerator extends BaseGenerator
         $nameQuoted     = var_export($name, true);
         $extendeeQuoted = var_export($extendee, true);
 
-        $sizeCallback  = $this->generateSizeCallback($field);
-        $readCallback  = $this->generateReadCallback($field);
-        $writeCallback = $this->generateWriteCallback($field);
+        $sizeCallback  = $this->generateSizeCallback($entity, $field);
+        $readCallback  = $this->generateReadCallback($entity, $field);
+        $writeCallback = $this->generateWriteCallback($entity, $field);
         $callbacks     = array_merge($readCallback, [null], $writeCallback, [null], $sizeCallback);
         $arguments     = [
             $extendeeQuoted,
@@ -51,14 +54,15 @@ class ExtensionMethodBodyGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity             $entity
      * @param \google\protobuf\FieldDescriptorProto $field
      *
      * @return string[]
      */
-    protected function generateReadCallback(FieldDescriptorProto $field)
+    protected function generateReadCallback(Entity $entity, FieldDescriptorProto $field)
     {
         $body  = [];
-        $sttm  = $this->generateFieldReadStatement($field);
+        $sttm  = $this->generateFieldReadStatement($entity, $field);
         $lines = $this->addIndentation($sttm, 1);
 
         $body[] = '$readCallback = function (\Protobuf\ReadContext $context, $wire) {';
@@ -73,14 +77,15 @@ class ExtensionMethodBodyGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity             $entity
      * @param \google\protobuf\FieldDescriptorProto $field
      *
      * @return string[]
      */
-    protected function generateWriteCallback(FieldDescriptorProto $field)
+    protected function generateWriteCallback(Entity $entity, FieldDescriptorProto $field)
     {
         $body  = [];
-        $sttm  = $this->generateFieldWriteStatement($field);
+        $sttm  = $this->generateFieldWriteStatement($entity, $field);
         $lines = $this->addIndentation($sttm, 1);
 
         $body[] = '$writeCallback = function (\Protobuf\WriteContext $context, $value) {';
@@ -95,14 +100,15 @@ class ExtensionMethodBodyGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity             $entity
      * @param \google\protobuf\FieldDescriptorProto $field
      *
      * @return string[]
      */
-    protected function generateSizeCallback(FieldDescriptorProto $field)
+    protected function generateSizeCallback(Entity $entity, FieldDescriptorProto $field)
     {
         $body  = [];
-        $sttm  = $this->generateFieldSizeStatement($field);
+        $sttm  = $this->generateFieldSizeStatement($entity, $field);
         $lines = $this->addIndentation($sttm, 1);
 
         $body[] = '$sizeCallback = function (\Protobuf\ComputeSizeContext $context, $value) {';
@@ -118,45 +124,48 @@ class ExtensionMethodBodyGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity             $entity
      * @param \google\protobuf\FieldDescriptorProto $field
      *
      * @return string[]
      */
-    protected function generateFieldReadStatement(FieldDescriptorProto $field)
+    protected function generateFieldReadStatement(Entity $entity, FieldDescriptorProto $field)
     {
-        $generator = new ReadFieldStatementGenerator($this->proto, $this->options, $this->package);
+        $generator = new ReadFieldStatementGenerator($this->context);
 
         $generator->setBreakMode(ReadFieldStatementGenerator::BREAK_MODE_RETURN);
         $generator->setTargetVar('$value');
 
-        return $generator->generateFieldReadStatement($field);
+        return $generator->generateFieldReadStatement($entity, $field);
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity             $entity
      * @param \google\protobuf\FieldDescriptorProto $field
      *
      * @return string[]
      */
-    protected function generateFieldWriteStatement(FieldDescriptorProto $field)
+    protected function generateFieldWriteStatement(Entity $entity, FieldDescriptorProto $field)
     {
-        $generator = new WriteFieldStatementGenerator($this->proto, $this->options, $this->package);
+        $generator = new WriteFieldStatementGenerator($this->context);
 
         $generator->setTargetVar('$value');
 
-        return $generator->generateFieldWriteStatement($field);
+        return $generator->generateFieldWriteStatement($entity, $field);
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity             $entity
      * @param \google\protobuf\FieldDescriptorProto $field
      *
      * @return string[]
      */
-    protected function generateFieldSizeStatement(FieldDescriptorProto $field)
+    protected function generateFieldSizeStatement(Entity $entity, FieldDescriptorProto $field)
     {
-        $generator = new SerializedSizeFieldStatementGenerator($this->proto, $this->options, $this->package);
+        $generator = new SerializedSizeFieldStatementGenerator($this->context);
 
         $generator->setTargetVar('$value');
 
-        return $generator->generateFieldSizeStatement($field);
+        return $generator->generateFieldSizeStatement($entity, $field);
     }
 }

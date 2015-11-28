@@ -2,13 +2,14 @@
 
 namespace Protobuf\Compiler\Generator;
 
-use Protobuf\Compiler\Options;
-use google\protobuf\EnumValueDescriptorProto;
+use Protobuf\Compiler\Entity;
 
 use Zend\Code\Generator\ClassGenerator;
 use Zend\Code\Generator\MethodGenerator;
 use Zend\Code\Generator\DocBlockGenerator;
 use Zend\Code\Generator\PropertyGenerator;
+
+use google\protobuf\EnumValueDescriptorProto;
 
 /**
  * Enum Generator
@@ -18,38 +19,39 @@ use Zend\Code\Generator\PropertyGenerator;
 class EnumGenerator extends BaseGenerator
 {
     /**
-     * @return string
+     * @param \Protobuf\Compiler\Entity $entity
      */
-    public function generate()
+    public function visit(Entity $entity)
     {
-        $name             = $this->proto->getName();
-        $namespace        = trim($this->getNamespace($this->package), '\\');
-        $className        = $this->getNamespace($this->package . '\\' . $name);
-        $shortDescription = 'Protobuf enum : ' . $this->proto->getName();
+        $name             = $entity->getName();
+        $namespace        = $entity->getNamespace();
+        $shortDescription = 'Protobuf enum : ' . $entity->getClass();
         $class            = ClassGenerator::fromArray([
             'name'          => $name,
             'namespacename' => $namespace,
             'extendedclass' => '\Protobuf\Enum',
-            'methods'       => $this->generateMethods($className),
-            'properties'    => $this->generateProperties($className),
+            'methods'       => $this->generateMethods($entity),
+            'properties'    => $this->generateProperties($entity),
             'docblock'      => [
                 'shortDescription' => $shortDescription,
             ]
         ]);
 
-        return $this->generateFileContent($class);
+        $entity->setContent($this->generateFileContent($class, $entity));
     }
 
     /**
-     * @param string $class
+     * @param \Protobuf\Compiler\Entity $entity
      *
      * @return string[]
      */
-    public function generateProperties($class)
+    protected function generateProperties(Entity $entity)
     {
         $properties = [];
-        $constants  = $this->generateConstants($class);
-        $values     = $this->proto->getValueList() ?: [];
+        $descriptor = $entity->getDescriptor();
+        $class      = $entity->getNamespacedName();
+        $constants  = $this->generateConstants($entity);
+        $values     = $descriptor->getValueList() ?: [];
 
         foreach ($values as $value) {
             $properties[] = PropertyGenerator::fromArray([
@@ -71,14 +73,15 @@ class EnumGenerator extends BaseGenerator
     }
 
     /**
-     * @param string $class
+     * @param \Protobuf\Compiler\Entity $entity
      *
      * @return string[]
      */
-    public function generateConstants($class)
+    public function generateConstants(Entity $entity)
     {
-        $constants = [];
-        $values    = $this->proto->getValueList() ?: [];
+        $constants  = [];
+        $descriptor = $entity->getDescriptor();
+        $values     = $descriptor->getValueList() ?: [];
 
         foreach ($values as $value) {
             $name     = $value->getName();
@@ -99,42 +102,44 @@ class EnumGenerator extends BaseGenerator
     }
 
     /**
-     * @param string $class
+     * @param \Protobuf\Compiler\Entity $entity
      *
      * @return string[]
      */
-    public function generateMethods($class)
+    public function generateMethods(Entity $entity)
     {
-        $methods = [];
-        $values  = $this->proto->getValueList() ?: [];
+        $methods    = [];
+        $descriptor = $entity->getDescriptor();
+        $values     = $descriptor->getValueList() ?: [];
 
         foreach ($values as $value) {
-            $methods[] = $this->generateMethod($class, $value);
+            $methods[] = $this->generateMethod($entity, $value);
         }
 
-        $methods[] = $this->generateValueOfMethod($class);
+        $methods[] = $this->generateValueOfMethod($entity);
 
         return $methods;
     }
 
     /**
-     * @param string                   $class
-     * @param EnumValueDescriptorProto $value
+     * @param \Protobuf\Compiler\Entity $entity
+     * @param EnumValueDescriptorProto  $value
      *
      * @return string
      */
-    public function generateMethod($class, EnumValueDescriptorProto $value)
+    public function generateMethod(Entity $entity, EnumValueDescriptorProto $value)
     {
         $body   = [];
         $name   = $value->getName();
         $number = $value->getNumber();
+        $class  = $entity->getNamespacedName();
         $args   = var_export($name, true) . ', self::' . $name . '_VALUE';
 
         $body[] = 'if (self::$' . $name . ' !== null) {';
         $body[] = '    return self::$' . $name . ';';
         $body[] = '}';
         $body[] = null;
-        $body[] = 'return self::$' . $name . ' = new ' . $class . '(' . $args . ');';
+        $body[] = 'return self::$' . $name . ' = new self(' . $args . ');';
 
         return MethodGenerator::fromArray([
             'static'     => true,
@@ -152,14 +157,16 @@ class EnumGenerator extends BaseGenerator
     }
 
     /**
-     * @param string $class
+     * @param \Protobuf\Compiler\Entity $entity
      *
      * @return string
      */
-    public function generateValueOfMethod($class)
+    public function generateValueOfMethod(Entity $entity)
     {
-        $body   = [];
-        $values = $this->proto->getValueList() ?: [];
+        $body        = [];
+        $descriptor  = $entity->getDescriptor();
+        $class       = $entity->getNamespacedName();
+        $values      = $descriptor->getValueList() ?: [];
 
         $body[] = 'switch ($value) {';
 

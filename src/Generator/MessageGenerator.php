@@ -10,14 +10,13 @@ use google\protobuf\FieldDescriptorProto;
 use google\protobuf\FieldDescriptorProto\Type;
 use google\protobuf\FieldDescriptorProto\Label;
 
-use Doctrine\Common\Inflector\Inflector;
-
 use Zend\Code\Generator\ClassGenerator;
 use Zend\Code\Generator\MethodGenerator;
 use Zend\Code\Generator\DocBlockGenerator;
 use Zend\Code\Generator\PropertyGenerator;
 use Zend\Code\Generator\ParameterGenerator;
 
+use Protobuf\Compiler\Entity;
 use Protobuf\Compiler\Generator\Message\AnnotationGenerator;
 use Protobuf\Compiler\Generator\Message\ExtensionMethodBodyGenerator;
 use Protobuf\Compiler\Generator\Message\WriteToMethodBodyGenerator;
@@ -35,51 +34,61 @@ use Protobuf\Compiler\Generator\Message\SerializedSizeMethodBodyGenerator;
 class MessageGenerator extends BaseGenerator
 {
     /**
-     * @return string
+     * @param \Protobuf\Compiler\Entity $entity
      */
-    public function generate()
+    public function visit(Entity $entity)
     {
-        $name             = $this->proto->getName();
-        $namespace        = trim($this->getNamespace($this->package), '\\');
-        $shortDescription = 'Protobuf message : ' . $this->proto->getName();
-        $longDescription  = $this->generateMessageAnnotation();
+        $name             = $entity->getName();
+        $namespace        = $entity->getNamespace();
+        $descriptor       = $entity->getDescriptor();
+        $longDescription  = $this->generateMessageAnnotation($entity);
+        $shortDescription = 'Protobuf message : ' . $entity->getClass();
         $class            = ClassGenerator::fromArray([
             'name'          => $name,
             'namespacename' => $namespace,
             'extendedClass' => '\Protobuf\AbstractMessage',
-            'properties'    => $this->generateFields(),
-            'methods'       => $this->generateMethods(),
+            'properties'    => $this->generateFields($entity),
+            'methods'       => $this->generateMethods($entity),
             'docblock'      => [
                 'shortDescription' => $shortDescription,
                 'longDescription'  => $longDescription
             ]
         ]);
 
-        if ($this->proto->hasExtensionList()) {
+        if ($descriptor->hasExtensionList()) {
             $class->setImplementedInterfaces(['\Protobuf\Extension']);
         }
 
-        return $this->generateFileContent($class);
+        $entity->setContent($this->generateFileContent($class, $entity));
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string
      */
-    protected function generateMessageAnnotation()
+    protected function generateMessageAnnotation(Entity $entity)
     {
-        $generator  = new AnnotationGenerator($this->proto, $this->options, $this->package);
-        $annotation = implode(PHP_EOL, $generator->generateAnnotation());
+        $generator  = new AnnotationGenerator($this->context);
+        $annotation = implode(PHP_EOL, $generator->generateAnnotation($entity));
 
         return $annotation;
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string[]
      */
-    public function generateFields()
+    protected function generateFields(Entity $entity)
     {
-        $unknown = PropertyGenerator::fromArray([
-            'name'       => $this->getUniqueFieldName($this->proto, 'unknownFieldSet'),
+        $properties = [];
+        $descriptor = $entity->getDescriptor();
+        $fields     = $descriptor->getFieldList() ?: [];
+        $extensions = $descriptor->getExtensionList() ?: [];
+
+        $properties[] = PropertyGenerator::fromArray([
+            'name'       => $this->getUniqueFieldName($descriptor, 'unknownFieldSet'),
             'visibility' => PropertyGenerator::VISIBILITY_PROTECTED,
             'docblock'   => [
                 'tags'   => [
@@ -91,8 +100,8 @@ class MessageGenerator extends BaseGenerator
             ]
         ]);
 
-        $extensions = PropertyGenerator::fromArray([
-            'name'       => $this->getUniqueFieldName($this->proto, 'extensions'),
+        $properties[] = PropertyGenerator::fromArray([
+            'name'       => $this->getUniqueFieldName($descriptor, 'extensions'),
             'visibility' => PropertyGenerator::VISIBILITY_PROTECTED,
             'docblock'   => [
                 'tags'   => [
@@ -104,28 +113,24 @@ class MessageGenerator extends BaseGenerator
             ]
         ]);
 
-        $fields = [];
-
-        foreach (($this->proto->getExtensionList() ?: []) as $field) {
-            $fields[] = $this->generateExtensionField($field);
+        foreach ($extensions as $field) {
+            $properties[] = $this->generateExtensionField($entity, $field);
         }
 
-        $fields[] = $unknown;
-        $fields[] = $extensions;
-
-        foreach (($this->proto->getFieldList() ?: []) as $field) {
-            $fields[] = $this->generateField($field);
+        foreach ($fields as $field) {
+            $properties[] = $this->generateField($entity, $field);
         }
 
-        return $fields;
+        return $properties;
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity             $entity
      * @param \google\protobuf\FieldDescriptorProto $field
      *
      * @return string
      */
-    public function generateField(FieldDescriptorProto $field)
+    protected function generateField(Entity $entity, FieldDescriptorProto $field)
     {
         $name     = $field->getName();
         $number   = $field->getNumber();
@@ -152,11 +157,12 @@ class MessageGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity             $entity
      * @param \google\protobuf\FieldDescriptorProto $field
      *
      * @return string
      */
-    public function generateExtensionField(FieldDescriptorProto $field)
+    protected function generateExtensionField(Entity $entity, FieldDescriptorProto $field)
     {
         $name     = $field->getName();
         $number   = $field->getNumber();
@@ -184,13 +190,15 @@ class MessageGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string[]
      */
-    public function generateMethods()
+    protected function generateMethods(Entity $entity)
     {
-        $extensions  = $this->generateExtensionMethods();
-        $constructor = $this->generateConstructorMethod();
-        $accessors   = $this->generateGetterAndSetterMethods();
+        $extensions  = $this->generateExtensionMethods($entity);
+        $constructor = $this->generateConstructorMethod($entity);
+        $accessors   = $this->generateGetterAndSetterMethods($entity);
         $methods     = [];
 
         if ($constructor) {
@@ -199,31 +207,35 @@ class MessageGenerator extends BaseGenerator
 
         $methods = array_merge($methods, $extensions, $accessors);
 
-        $methods[] = $this->generateUnknownFieldSetMethod();
-        $methods[] = $this->generateExtensionsMethod();
-        $methods[] = $this->generateSerializedSizeMethod();
-        $methods[] = $this->generateToStreamMethod();
-        $methods[] = $this->generateReadFromMethod();
-        $methods[] = $this->generateWriteToMethod();
-        $methods[] = $this->generateFromStreamMethod();
+        $methods[] = $this->generateUnknownFieldSetMethod($entity);
+        $methods[] = $this->generateExtensionsMethod($entity);
+        $methods[] = $this->generateSerializedSizeMethod($entity);
+        $methods[] = $this->generateToStreamMethod($entity);
+        $methods[] = $this->generateReadFromMethod($entity);
+        $methods[] = $this->generateWriteToMethod($entity);
+        $methods[] = $this->generateFromStreamMethod($entity);
 
         return $methods;
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string
      */
-    public function generateGetterAndSetterMethods()
+    protected function generateGetterAndSetterMethods(Entity $entity)
     {
-        $methods = [];
+        $methods    = [];
+        $descriptor = $entity->getDescriptor();
+        $fields     = $descriptor->getFieldList() ?: [];
 
-        foreach (($this->proto->getFieldList() ?: []) as $field) {
-            $methods[] = $this->generateHasMethod($field);
-            $methods[] = $this->generateGetterMethod($field);
-            $methods[] = $this->generateSetterMethod($field);
+        foreach ($fields as $field) {
+            $methods[] = $this->generateHasMethod($entity, $field);
+            $methods[] = $this->generateGetterMethod($entity, $field);
+            $methods[] = $this->generateSetterMethod($entity, $field);
 
             if ($field->getLabel() === Label::LABEL_REPEATED()) {
-                $methods[] = $this->generateAddMethod($field);
+                $methods[] = $this->generateAddMethod($entity, $field);
             }
         }
 
@@ -231,29 +243,34 @@ class MessageGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string
      */
-    public function generateExtensionMethods()
+    protected function generateExtensionMethods(Entity $entity)
     {
-        $methods = [];
+        $methods    = [];
+        $descriptor = $entity->getDescriptor();
+        $extensions = $descriptor->getExtensionList() ?: [];
 
-        foreach (($this->proto->getExtensionList() ?: []) as $field) {
-            $methods[] = $this->generateExtensionMethod($field);
+        foreach ($extensions as $field) {
+            $methods[] = $this->generateExtensionMethod($entity, $field);
         }
 
         return $methods;
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity             $entity
      * @param \google\protobuf\FieldDescriptorProto $field
      *
      * @return string
      */
-    public function generateExtensionMethod(FieldDescriptorProto $field)
+    protected function generateExtensionMethod(Entity $entity, FieldDescriptorProto $field)
     {
         $fieldName  = $field->getName();
-        $bodyGen    = new ExtensionMethodBodyGenerator($this->proto, $this->options, $this->package);
-        $body       = implode(PHP_EOL, $bodyGen->generateBody($field));
+        $bodyGen    = new ExtensionMethodBodyGenerator($this->context);
+        $body       = implode(PHP_EOL, $bodyGen->generateBody($entity, $field));
         $method     = MethodGenerator::fromArray([
             'static'     => true,
             'body'       => $body,
@@ -275,12 +292,15 @@ class MessageGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string
      */
-    public function generateUnknownFieldSetMethod()
+    protected function generateUnknownFieldSetMethod(Entity $entity)
     {
         $methodName = 'unknownFieldSet';
-        $fieldName  = $this->getUniqueFieldName($this->proto, $methodName);
+        $descriptor = $entity->getDescriptor();
+        $fieldName  = $this->getUniqueFieldName($descriptor, $methodName);
         $method     = MethodGenerator::fromArray([
             'name'       => $methodName,
             'body'       => 'return $this->' . $fieldName . ';',
@@ -299,12 +319,15 @@ class MessageGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string
      */
-    public function generateExtensionsMethod()
+    protected function generateExtensionsMethod(Entity $entity)
     {
         $lines      = [];
-        $fieldName  = $this->getUniqueFieldName($this->proto, 'extensions');
+        $descriptor = $entity->getDescriptor();
+        $fieldName  = $this->getUniqueFieldName($descriptor, 'extensions');
 
         $lines[] = 'if ( $this->' . $fieldName . ' !== null) {';
         $lines[] = '    return $this->' . $fieldName . ';';
@@ -328,11 +351,12 @@ class MessageGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity             $entity
      * @param \google\protobuf\FieldDescriptorProto $field
      *
      * @return string
      */
-    public function generateGetterMethod(FieldDescriptorProto $field)
+    protected function generateGetterMethod(Entity $entity, FieldDescriptorProto $field)
     {
         $fieldName  = $field->getName();
         $methodName = $this->getAccessorName('get', $field);
@@ -356,11 +380,12 @@ class MessageGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity            $entity
      * @param google\protobuf\FieldDescriptorProto $field
      *
      * @return string
      */
-    public function generateSetterMethod(FieldDescriptorProto $field)
+    protected function generateSetterMethod(Entity $entity, FieldDescriptorProto $field)
     {
         $fieldName  = $field->getName();
         $methodName = $this->getAccessorName('set', $field);
@@ -390,11 +415,12 @@ class MessageGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity            $entity
      * @param google\protobuf\FieldDescriptorProto $field
      *
      * @return string
      */
-    public function generateHasMethod(FieldDescriptorProto $field)
+    protected function generateHasMethod(Entity $entity, FieldDescriptorProto $field)
     {
         $fieldName  = $field->getName();
         $methodName = $this->getAccessorName('has', $field);
@@ -416,11 +442,12 @@ class MessageGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity            $entity
      * @param google\protobuf\FieldDescriptorProto $field
      *
      * @return string
      */
-    public function generateAddMethod(FieldDescriptorProto $field)
+    protected function generateAddMethod(Entity $entity, FieldDescriptorProto $field)
     {
         $fieldName  = $field->getName();
         $methodName = 'add' . $this->getClassifiedName($field);
@@ -448,12 +475,14 @@ class MessageGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string
      */
-    public function generateWriteToMethod()
+    protected function generateWriteToMethod(Entity $entity)
     {
-        $bodyGen = new WriteToMethodBodyGenerator($this->proto, $this->options, $this->package);
-        $body    = implode(PHP_EOL, $bodyGen->generateBody());
+        $bodyGen = new WriteToMethodBodyGenerator($this->context);
+        $body    = implode(PHP_EOL, $bodyGen->generateBody($entity));
         $method  = MethodGenerator::fromArray([
             'name'       => 'writeTo',
             'body'       => $body,
@@ -472,12 +501,14 @@ class MessageGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string
      */
-    public function generateSerializedSizeMethod()
+    protected function generateSerializedSizeMethod(Entity $entity)
     {
-        $bodyGen = new SerializedSizeMethodBodyGenerator($this->proto, $this->options, $this->package);
-        $body    = implode(PHP_EOL, $bodyGen->generateBody());
+        $bodyGen = new SerializedSizeMethodBodyGenerator($this->context);
+        $body    = implode(PHP_EOL, $bodyGen->generateBody($entity));
         $method  = MethodGenerator::fromArray([
             'name'       => 'serializedSize',
             'body'       => $body,
@@ -496,12 +527,14 @@ class MessageGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string
      */
-    public function generateConstructorMethod()
+    protected function generateConstructorMethod(Entity $entity)
     {
-        $bodyGen = new ConstructMethodBodyGenerator($this->proto, $this->options, $this->package);
-        $body    = implode(PHP_EOL, $bodyGen->generateBody());
+        $bodyGen = new ConstructMethodBodyGenerator($this->context);
+        $body    = implode(PHP_EOL, $bodyGen->generateBody($entity));
         $method  = MethodGenerator::fromArray([
             'name'       => '__construct',
             'body'       => $body,
@@ -518,12 +551,14 @@ class MessageGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string
      */
-    public function generateReadFromMethod()
+    protected function generateReadFromMethod(Entity $entity)
     {
-        $bodyGen = new ReadFromMethodBodyGenerator($this->proto, $this->options, $this->package);
-        $body    = implode(PHP_EOL, $bodyGen->generateBody());
+        $bodyGen = new ReadFromMethodBodyGenerator($this->context);
+        $body    = implode(PHP_EOL, $bodyGen->generateBody($entity));
         $method  = MethodGenerator::fromArray([
             'name'       => 'readFrom',
             'body'       => $body,
@@ -542,12 +577,14 @@ class MessageGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string
      */
-    public function generateFromStreamMethod()
+    protected function generateFromStreamMethod(Entity $entity)
     {
-        $bodyGen = new FromStreamMethodBodyGenerator($this->proto, $this->options, $this->package);
-        $body    = implode(PHP_EOL, $bodyGen->generateBody());
+        $bodyGen = new FromStreamMethodBodyGenerator($this->context);
+        $body    = implode(PHP_EOL, $bodyGen->generateBody($entity));
         $method  = MethodGenerator::fromArray([
             'name'       => 'fromStream',
             'body'       => $body,
@@ -572,12 +609,14 @@ class MessageGenerator extends BaseGenerator
     }
 
     /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
      * @return string
      */
-    public function generateToStreamMethod()
+    protected function generateToStreamMethod(Entity $entity)
     {
-        $bodyGen = new ToStreamMethodBodyGenerator($this->proto, $this->options, $this->package);
-        $body    = implode(PHP_EOL, $bodyGen->generateBody());
+        $bodyGen = new ToStreamMethodBodyGenerator($this->context);
+        $body    = implode(PHP_EOL, $bodyGen->generateBody($entity));
         $method  = MethodGenerator::fromArray([
             'name'       => 'toStream',
             'body'       => $body,
