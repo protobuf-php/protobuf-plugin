@@ -241,7 +241,7 @@ class GeneratorTest extends TestCase
 
     public function testGetPsr4ClassPath()
     {
-        $className = 'ProtobufCompilerTest\\Protos\\Foo';
+        $className = '\\ProtobufCompilerTest\\Protos\\Foo';
         $options   = [
             'psr4' => [
                 'Protos',

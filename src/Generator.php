@@ -42,9 +42,8 @@ class Generator extends BaseGenerator
     public function visit(Entity $entity)
     {
         $type  = $entity->getType();
-        $class = $entity->getClass();
-        $fqcn  = trim($this->getNamespace($class), '\\');
-        $path  = $this->getPsr4ClassPath($fqcn);
+        $class = $entity->getNamespacedName();
+        $path  = $this->getPsr4ClassPath($class);
 
         $entity->setPath($path);
 
@@ -56,40 +55,41 @@ class Generator extends BaseGenerator
     }
 
     /**
-     * @param string $fqcn
+     * @param string $class
      *
      * @return string
      */
-    protected function getPsr4ClassPath($fqcn)
+    protected function getPsr4ClassPath($class)
     {
         $options = $this->context->getOptions();
         $psr4    = $options->getPsr4() ?: [];
+        $class   = trim($class, '\\');
 
-        foreach ($psr4 as $prefix) {
-
+        foreach ($psr4 as $item) {
+            $prefix = trim($item, '\\') . '\\';
             $length = strlen($prefix);
-            $start  = substr($fqcn, 0, $length);
+            $start  = substr($class, 0, $length);
 
             if ($start !== $prefix) {
                 continue;
             }
 
-            $name = trim(str_replace($prefix, '', $fqcn), '\\');
+            $name = trim(str_replace($prefix, '', $class), '\\');
             $path = $this->getClassPath($name);
 
             return $path;
         }
 
-        return $this->getClassPath($fqcn);
+        return $this->getClassPath($class);
     }
 
     /**
-     * @param string $fqcn
+     * @param string $class
      *
      * @return string
      */
-    protected function getClassPath($fqcn)
+    protected function getClassPath($class)
     {
-        return str_replace('\\', DIRECTORY_SEPARATOR, $fqcn) . '.php';
+        return str_replace('\\', DIRECTORY_SEPARATOR, $class) . '.php';
     }
 }

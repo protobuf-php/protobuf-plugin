@@ -54,15 +54,17 @@ class Entity
     protected $fileToGenerate = false;
 
     /**
-     * @param string            $type
-     * @param string            $class
-     * @param \Protobuf\Message $descriptor
+     * @param string                               $type
+     * @param string                               $class
+     * @param \Protobuf\Message                    $descriptor
+     * @param \google\protobuf\FileDescriptorProto $fileDescriptor
      */
-    public function __construct($type, $class, Message $descriptor)
+    public function __construct($type, $class, Message $descriptor, FileDescriptorProto $fileDescriptor)
     {
-        $this->type       = $type;
-        $this->class      = $class;
-        $this->descriptor = $descriptor;
+        $this->type           = $type;
+        $this->class          = $class;
+        $this->descriptor     = $descriptor;
+        $this->fileDescriptor = $fileDescriptor;
     }
 
     /**
@@ -126,9 +128,9 @@ class Entity
     {
         $package    = $this->getPackage();
         $extension  = Extension::package();
-        $extensions = $this->descriptor->extensions();
+        $extensions = $this->getFileOptionsExtensions();
 
-        if ($extensions->offsetExists($extension)) {
+        if ($extensions !== null && $extensions->offsetExists($extension)) {
             $package = $extensions->get($extension);
         }
 
@@ -211,10 +213,14 @@ class Entity
     }
 
     /**
-     * @param \google\protobuf\FileDescriptorProto $fileDescriptor
+     * @return \Protobuf\Extension\ExtensionFieldMap
      */
-    public function setFileDescriptor(FileDescriptorProto $fileDescriptor)
+    protected function getFileOptionsExtensions()
     {
-        $this->fileDescriptor = $fileDescriptor;
+        if ( ! $this->fileDescriptor->hasOptions()) {
+            return null;
+        }
+
+        return $this->fileDescriptor->getOptions()->extensions();
     }
 }
