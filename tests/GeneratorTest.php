@@ -6,6 +6,7 @@ use Protobuf\Field;
 use Protobuf\Compiler;
 use Protobuf\Descriptor;
 use Protobuf\Compiler\Options;
+use Protobuf\Compiler\Context;
 use Protobuf\Compiler\Generator;
 use google\protobuf\SourceCodeInfo;
 use google\protobuf\DescriptorProto;
@@ -19,76 +20,193 @@ use google\protobuf\compiler\CodeGeneratorRequest;
 
 class GeneratorTest extends TestCase
 {
-    public function testGenerateMessage()
+    public function descriptorProvider()
     {
-        $fileDesc   = new DescriptorProto();
-        $protoFile  = new FileDescriptorProto();
+        return [
+            // simple message
+            [
+                'Simple.tpl',
+                'ProtobufCompilerTest.Protos.Simple',
+                [
+                    'name'    => 'simple.proto',
+                    'package' => 'ProtobufCompilerTest.Protos',
+                    'values'  => [
+                        'messages' => [
+                            [
+                                'name'   => 'Simple',
+                                'fields' => [
+                                    1  => ['double', Field::TYPE_DOUBLE, Field::LABEL_OPTIONAL],
+                                    2  => ['float', Field::TYPE_FLOAT, Field::LABEL_OPTIONAL],
+                                    3  => ['int64', Field::TYPE_INT64, Field::LABEL_OPTIONAL],
+                                    4  => ['uint64', Field::TYPE_UINT64, Field::LABEL_OPTIONAL],
+                                    5  => ['int32', Field::TYPE_INT32, Field::LABEL_OPTIONAL],
+                                    6  => ['fixed64', Field::TYPE_FIXED64, Field::LABEL_OPTIONAL],
+                                    7  => ['fixed32', Field::TYPE_FIXED32, Field::LABEL_OPTIONAL],
+                                    8  => ['bool', Field::TYPE_BOOL, Field::LABEL_OPTIONAL],
+                                    9  => ['string', Field::TYPE_STRING, Field::LABEL_OPTIONAL],
+                                    12 => ['bytes', Field::TYPE_BYTES, Field::LABEL_OPTIONAL],
+                                    13 => ['uint32', Field::TYPE_UINT32, Field::LABEL_OPTIONAL],
+                                    15 => ['sfixed32', Field::TYPE_SFIXED32, Field::LABEL_OPTIONAL],
+                                    16 => ['sfixed64', Field::TYPE_SFIXED64, Field::LABEL_OPTIONAL],
+                                    17 => ['sint32', Field::TYPE_SINT32, Field::LABEL_OPTIONAL],
+                                    18 => ['sint64', Field::TYPE_SINT64, Field::LABEL_OPTIONAL]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
 
-        $fileDesc->setName('Simple');
-        $fileDesc->addField($this->createFieldDescriptorProto(1, 'double', Field::TYPE_DOUBLE, Field::LABEL_OPTIONAL));
-        $fileDesc->addField($this->createFieldDescriptorProto(2, 'float', Field::TYPE_FLOAT, Field::LABEL_OPTIONAL));
-        $fileDesc->addField($this->createFieldDescriptorProto(3, 'int64', Field::TYPE_INT64, Field::LABEL_OPTIONAL));
-        $fileDesc->addField($this->createFieldDescriptorProto(4, 'uint64', Field::TYPE_UINT64, Field::LABEL_OPTIONAL));
-        $fileDesc->addField($this->createFieldDescriptorProto(5, 'int32', Field::TYPE_INT32, Field::LABEL_OPTIONAL));
-        $fileDesc->addField($this->createFieldDescriptorProto(6, 'fixed64', Field::TYPE_FIXED64, Field::LABEL_OPTIONAL));
-        $fileDesc->addField($this->createFieldDescriptorProto(7, 'fixed32', Field::TYPE_FIXED32, Field::LABEL_OPTIONAL));
-        $fileDesc->addField($this->createFieldDescriptorProto(8, 'bool', Field::TYPE_BOOL, Field::LABEL_OPTIONAL));
-        $fileDesc->addField($this->createFieldDescriptorProto(9, 'string', Field::TYPE_STRING, Field::LABEL_OPTIONAL));
-        $fileDesc->addField($this->createFieldDescriptorProto(12, 'bytes', Field::TYPE_BYTES, Field::LABEL_OPTIONAL));
-        $fileDesc->addField($this->createFieldDescriptorProto(13, 'uint32', Field::TYPE_UINT32, Field::LABEL_OPTIONAL));
-        $fileDesc->addField($this->createFieldDescriptorProto(15, 'sfixed32', Field::TYPE_SFIXED32, Field::LABEL_OPTIONAL));
-        $fileDesc->addField($this->createFieldDescriptorProto(16, 'sfixed64', Field::TYPE_SFIXED64, Field::LABEL_OPTIONAL));
-        $fileDesc->addField($this->createFieldDescriptorProto(17, 'sint32', Field::TYPE_SINT32, Field::LABEL_OPTIONAL));
-        $fileDesc->addField($this->createFieldDescriptorProto(18, 'sint64', Field::TYPE_SINT64, Field::LABEL_OPTIONAL));
+            // complex with default value
+            [
+                'PhoneNumber.tpl',
+                'ProtobufCompilerTest.Protos.PhoneNumber',
+                [
+                    'name'    => 'addressbook.proto',
+                    'package' => 'ProtobufCompilerTest.Protos',
+                    'values'  => [
+                        'messages' => [
+                            [
+                                'name'   => 'PhoneNumber',
+                                'fields' => [
+                                    1  => ['number', Field::TYPE_STRING, Field::LABEL_REQUIRED],
+                                    2  => ['type', Field::TYPE_ENUM, Field::LABEL_OPTIONAL, '.ProtobufTest.Protos.Person.PhoneType', ['default' => 'HOME']],
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
 
-        $protoFile->setName('simple.proto');
-        $protoFile->setPackage('ProtobufCompilerTest.Protos');
+            // complex message
+            [
+                'Person.tpl',
+                'ProtobufCompilerTest.Protos.Person',
+                [
+                    'name'    => 'addressbook.proto',
+                    'package' => 'ProtobufCompilerTest.Protos',
+                    'values'  => [
+                        'messages' => [
+                            [
+                                'name'   => 'Person',
+                                'fields' => [
+                                    1  => ['name', Field::TYPE_STRING, Field::LABEL_REQUIRED],
+                                    2  => ['id', Field::TYPE_INT32, Field::LABEL_REQUIRED],
+                                    3  => ['email', Field::TYPE_STRING, Field::LABEL_OPTIONAL],
+                                    4  => ['phone', Field::TYPE_MESSAGE, Field::LABEL_REPEATED, '.ProtobufTest.Protos.Person.PhoneNumber'],
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
 
-        $options   = Options::fromArray(['package' => 'ProtobufCompilerTest.Protos']);
-        $generator = new Generator($protoFile, $options);
-        $className = 'ProtobufCompilerTest.Protos.Simple';
-        $result    = $generator->generateMessages([$fileDesc], 'ProtobufCompilerTest.Protos');
-        $expected  = $this->getFixtureFileContent('Simple.tpl');
+            // nested enum
+            [
+                'Person/PhoneType.tpl',
+                'ProtobufCompilerTest.Protos.Person.PhoneType',
+                [
+                    'name'    => 'addressbook.proto',
+                    'package' => 'ProtobufCompilerTest.Protos',
+                    'values'  => [
+                        'messages' => [
+                            [
+                                'name'   => 'Person',
+                                'fields' => [],
+                                'values' => [
+                                    'enums' => [
+                                        [
+                                            'name'   => 'PhoneType',
+                                            'values' => [
+                                                0 => 'MOBILE',
+                                                1 => 'HOME',
+                                                2 => 'WORK'
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
 
-        // file_put_contents(__DIR__ . '/Fixtures/Simple.tpl', $result[$className]);
+            // extension
+            [
+                'Extension/Extension.tpl',
+                'ProtobufCompilerTest.Protos.Extension.Extension',
+                [
+                    'name'    => 'extension.proto',
+                    'package' => 'ProtobufCompilerTest.Protos.Extension',
+                    'values'  => [
+                        'extensions' => [
+                            200  => ['habitat', Field::TYPE_STRING, Field::LABEL_OPTIONAL, '.ProtobufTest.Protos.Extension.Animal'],
+                            201  => ['verbose', Field::TYPE_BOOL, Field::LABEL_OPTIONAL, '.ProtobufTest.Protos.Extension.Command']
+                        ],
+                        'messages' => [
+                            [
+                                'name'   => 'Dog',
+                                'fields' => [],
+                                'values' => [
+                                    'extensions' => [
+                                        101  => ['animal',  Field::TYPE_MESSAGE, Field::LABEL_OPTIONAL, '.ProtobufTest.Protos.Extension.Animal', '.ProtobufTest.Protos.Extension.Dog']
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
 
-        $this->assertArrayHasKey($className, $result);
-        $this->assertEquals($expected, $result[$className]);
+            // nested extension
+            [
+                'Extension/Dog.tpl',
+                'ProtobufCompilerTest.Protos.Extension.Dog',
+                [
+                    'name'    => 'extension.proto',
+                    'package' => 'ProtobufCompilerTest.Protos.Extension',
+                    'values'  => [
+                        'messages' => [
+                            [
+                                'name'   => 'Dog',
+                                'fields' => [
+                                    1  => ['bones_buried', Field::TYPE_INT32, Field::LABEL_OPTIONAL, '.ProtobufTest.Protos.Extension.Dog'],
+                                ],
+                                'values' => [
+                                    'extensions' => [
+                                        101  => ['animal',  Field::TYPE_MESSAGE, Field::LABEL_OPTIONAL, '.ProtobufTest.Protos.Extension.Animal', '.ProtobufTest.Protos.Extension.Dog']
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
     }
 
-    public function testEnumMessage()
+    /**
+     * @dataProvider descriptorProvider
+     */
+    public function testVisitEntity($fixture, $className, $descriptor)
     {
-        $enumDesc   = new EnumDescriptorProto();
-        $protoFile  = new FileDescriptorProto();
-        $mobileVal  = $this->createEnumValueDesc(0, 'MOBILE');
-        $homeVal    = $this->createEnumValueDesc(1, 'HOME');
-        $workVal    = $this->createEnumValueDesc(2, 'WORK');
+        $context = $this->createContext([$descriptor]);
 
-        $enumDesc->setName('PhoneType');
-        $enumDesc->addValue($mobileVal);
-        $enumDesc->addValue($homeVal);
-        $enumDesc->addValue($workVal);
+        $expected  = $this->getFixtureFileContent($fixture);
+        $entity    = $context->getEntity($className);
+        $generator = new Generator($context);
 
-        $protoFile->setName('addressbook.proto');
-        $protoFile->setPackage('ProtobufCompilerTest.Protos');
+        $generator->visit($entity);
 
-        $options   = Options::fromArray(['package' => 'ProtobufCompilerTest.Protos']);
-        $generator = new Generator($protoFile, $options);
-        $className = 'ProtobufCompilerTest.Protos.Person.PhoneType';
-        $result    = $generator->generateEnums([$enumDesc], 'ProtobufCompilerTest.Protos.Person');
-        $expected  = $this->getFixtureFileContent('Person/PhoneType.tpl');
+         // file_put_contents(__DIR__ . '/Fixtures/'. $fixture, $entity->getContent());
 
-        // file_put_contents(__DIR__ . '/Fixtures/Person/PhoneType.tpl', $result[$className]);
-
-        $this->assertArrayHasKey($className, $result);
-        $this->assertEquals($expected, $result[$className]);
+        $this->assertEquals($expected, $entity->getContent());
     }
 
     public function testService()
     {
         $serviceDesc = new ServiceDescriptorProto();
         $methodDesc  = new MethodDescriptorProto();
-        $protoFile   = new FileDescriptorProto();
 
         // rpc search (SearchRequest) returns (SearchResponse);
 
@@ -99,56 +217,44 @@ class GeneratorTest extends TestCase
         $serviceDesc->setName('SearchService');
         $serviceDesc->addMethod($methodDesc);
 
-        $protoFile->setName('service.proto');
-        $protoFile->setPackage('ProtobufCompilerTest.Protos.Service');
-
-        $options   = Options::fromArray(['package' => 'ProtobufCompilerTest.Protos.Service']);
-        $generator = new Generator($protoFile, $options);
-        $className = 'ProtobufCompilerTest.Protos.Service.SearchService';
-        $result    = $generator->generateServices([$serviceDesc], 'ProtobufCompilerTest.Protos.Service');
-        $expected  = file_get_contents(__DIR__ . '/Fixtures/Service/SearchService.tpl');
-
-        //file_put_contents(__DIR__ . '/Fixtures/Service/SearchService.tpl', $result[$className]);
-
-        $this->assertArrayHasKey($className, $result);
-        $this->assertEquals($expected, $result[$className]);
-    }
-
-    public function testPsr4ClassName()
-    {
-        $fileDesc  = new DescriptorProto();
-        $protoFile = new FileDescriptorProto();
-        $package   = 'ProtobufCompilerTest.Protos';
-        $className = 'ProtobufCompilerTest\\Protos\\Foo';
-        $options   = Options::fromArray([
-            'package' => $package,
-            'psr4'    => [
-                'Protos',
-                'ProtobufCompilerTest'
-            ],
+        $context = $this->createContext([
+            [
+                'name'    => 'service.proto',
+                'package' => 'ProtobufCompilerTest.Protos.Service',
+                'values'  => [
+                    'services' => [$serviceDesc]
+                ]
+            ]
         ]);
 
-        $fileDesc->setName('Foo');
-        $fileDesc->addField($this->createFieldDescriptorProto(1, 'bar', Field::TYPE_STRING, Field::LABEL_OPTIONAL));
+        $expected  = $this->getFixtureFileContent('Service/SearchService.tpl');
+        $className = 'ProtobufCompilerTest.Protos.Service.SearchService';
+        $entity    = $context->getEntity($className);
+        $generator = new Generator($context);
 
-        $protoFile->setName('simple.proto');
-        $protoFile->setPackage($package);
+        $generator->visit($entity);
 
-        $generator = new Generator($protoFile, $options);
+        // file_put_contents(__DIR__ . '/Fixtures/Service/SearchService.tpl', $entity->getContent());
 
-        $expected  = 'Protos\\Foo';
-        $actual    = $this->invokeMethod($generator, 'getPsr4ClassName', [$className]);
-
-        $this->assertEquals($expected, $actual);
+        $this->assertEquals($expected, $entity->getContent());
     }
 
-    protected function createEnumValueDesc($number, $name)
+    public function testGetPsr4ClassPath()
     {
-        $field = new EnumValueDescriptorProto();
+        $className = 'ProtobufCompilerTest\\Protos\\Foo';
+        $options   = [
+            'psr4' => [
+                'Protos',
+                'ProtobufCompilerTest'
+            ]
+        ];
 
-        $field->setName($name);
-        $field->setNumber($number);
+        $context   = $this->createContext([], $options);
+        $generator = new Generator($context);
 
-        return $field;
+        $expected   = 'Protos/Foo.php';
+        $actual     = $this->invokeMethod($generator, 'getPsr4ClassPath', [$className]);
+
+        $this->assertEquals($expected, $actual);
     }
 }

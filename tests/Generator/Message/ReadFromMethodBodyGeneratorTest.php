@@ -7,42 +7,35 @@ use google\protobuf\FieldDescriptorProto;
 use google\protobuf\DescriptorProto;
 use ProtobufCompilerTest\TestCase;
 use google\protobuf\FieldOptions;
+use Protobuf\Field;
 
 class ReadFromMethodBodyGeneratorTest extends TestCase
 {
-    /**
-     * @var \Protobuf\Compiler\Options
-     */
-    protected $options;
-
-    /**
-     * @var string
-     */
-    protected $package;
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function setUp()
-    {
-        $this->package = 'ProtobufCompiler.Proto';
-        $this->options = $this->getMock('Protobuf\Compiler\Options');
-    }
-
     public function testGenerateBody()
     {
-        $proto     = new DescriptorProto();
-        $field     = new FieldDescriptorProto();
-        $generator = new ReadFromMethodBodyGenerator($proto, $this->options, $this->package);
+        $context = $this->createContext([
+            [
+                'name'    => 'simple.proto',
+                'package' => 'ProtobufCompilerTest.Protos',
+                'values'  => [
+                    'messages' => [
+                        [
+                            'name'   => 'Simple',
+                            'fields' => [
+                                1  => ['lines', Field::TYPE_INT32, Field::LABEL_REPEATED]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ]);
 
-        $field->setNumber(1);
-        $field->setName('lines');
-        $field->setType(FieldDescriptorProto\Type::TYPE_INT32());
-        $field->setLabel(FieldDescriptorProto\Label::LABEL_REPEATED());
+        $entity    = $context->getEntity('ProtobufCompilerTest.Protos.Simple');
+        $generator = new ReadFromMethodBodyGenerator($context);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
 
-        $proto->addField($field);
-
-        $actual   = $generator->generateBody();
+        $actual   = $generator->generateBody($entity);
         $expected = <<<'CODE'
 $reader = $context->getReader();
 $length = $context->getLength();

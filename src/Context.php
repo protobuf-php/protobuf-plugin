@@ -2,7 +2,6 @@
 
 namespace Protobuf\Compiler;
 
-use Protobuf\Collection;
 use Protobuf\Configuration;
 
 /**

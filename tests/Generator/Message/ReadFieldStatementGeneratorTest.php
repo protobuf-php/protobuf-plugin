@@ -7,40 +7,42 @@ use google\protobuf\FieldDescriptorProto;
 use google\protobuf\DescriptorProto;
 use ProtobufCompilerTest\TestCase;
 use google\protobuf\FieldOptions;
+use Protobuf\Field;
 
 class ReadFieldStatementGeneratorTest extends TestCase
 {
-    /**
-     * @var \Protobuf\Compiler\Options
-     */
-    protected $options;
+    protected $messageClass = 'ProtobufCompilerTest.Protos.Simple';
 
-    /**
-     * @var string
-     */
-    protected $package;
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function setUp()
+    public function createMessagesContext(array $fields)
     {
-        $this->package = 'ProtobufCompiler.Proto';
-        $this->options = $this->getMock('Protobuf\Compiler\Options');
+        return $this->createContext([
+            [
+                'name'    => 'simple.proto',
+                'package' => 'ProtobufCompilerTest.Protos',
+                'values'  => [
+                    'messages' => [
+                        [
+                            'name'   => 'Simple',
+                            'fields' => $fields
+                        ]
+                    ]
+                ]
+            ]
+        ]);
     }
 
     public function testGenerateReadInt32Statement()
     {
-        $proto     = new DescriptorProto();
-        $field     = new FieldDescriptorProto();
-        $generator = new ReadFieldStatementGenerator($proto, $this->options, $this->package);
+        $context = $this->createMessagesContext([
+            1  => ['count', Field::TYPE_INT32, Field::LABEL_REQUIRED]
+        ]);
 
-        $field->setNumber(1);
-        $field->setName('count');
-        $field->setType(FieldDescriptorProto\Type::TYPE_INT32());
-        $field->setLabel(FieldDescriptorProto\Label::LABEL_REQUIRED());
+        $generator = new ReadFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
 
-        $actual   = $generator->generateFieldReadStatement($field);
+        $actual   = $generator->generateFieldReadStatement($entity, $field);
         $expected = <<<'CODE'
 \Protobuf\WireFormat::assertWireType($wire, 5);
 
@@ -54,24 +56,24 @@ CODE;
 
     public function testGenerateReadStringRepeatedStatement()
     {
-        $proto     = new DescriptorProto();
-        $field     = new FieldDescriptorProto();
-        $generator = new ReadFieldStatementGenerator($proto, $this->options, $this->package);
+        $context = $this->createMessagesContext([
+            1  => ['lines', Field::TYPE_STRING, Field::LABEL_REPEATED]
+        ]);
 
-        $field->setNumber(1);
-        $field->setName('lines');
-        $field->setType(FieldDescriptorProto\Type::TYPE_INT32());
-        $field->setLabel(FieldDescriptorProto\Label::LABEL_REPEATED());
+        $generator = new ReadFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
 
-        $actual   = $this->invokeMethod($generator, 'generateFieldReadStatement', [$field]);
+        $actual   = $this->invokeMethod($generator, 'generateFieldReadStatement', [$entity, $field]);
         $expected = <<<'CODE'
-\Protobuf\WireFormat::assertWireType($wire, 5);
+\Protobuf\WireFormat::assertWireType($wire, 9);
 
 if ($this->lines === null) {
     $this->lines = new \Protobuf\ScalarCollection();
 }
 
-$this->lines->add($reader->readVarint($stream));
+$this->lines->add($reader->readString($stream));
 
 continue;
 CODE;
@@ -81,20 +83,20 @@ CODE;
 
     public function testGenerateReadPackedInt32Statement()
     {
-        $options   = new FieldOptions();
-        $proto     = new DescriptorProto();
-        $field     = new FieldDescriptorProto();
-        $generator = new ReadFieldStatementGenerator($proto, $this->options, $this->package);
+        $options = new FieldOptions();
+        $context = $this->createMessagesContext([
+            1  => ['tags', Field::TYPE_INT32, Field::LABEL_REPEATED]
+        ]);
+
+        $generator = new ReadFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
 
         $options->setPacked(true);
-
-        $field->setNumber(1);
-        $field->setName('tags');
         $field->setOptions($options);
-        $field->setType(FieldDescriptorProto\Type::TYPE_INT32());
-        $field->setLabel(FieldDescriptorProto\Label::LABEL_REPEATED());
 
-        $actual   = $generator->generateFieldReadStatement($field);
+        $actual   = $generator->generateFieldReadStatement($entity, $field);
         $expected = <<<'CODE'
 $innerSize  = $reader->readVarint($stream);
 $innerLimit = $stream->tell() + $innerSize;
@@ -115,17 +117,16 @@ CODE;
 
     public function testGenerateReadMessageStatement()
     {
-        $proto     = new DescriptorProto();
-        $field     = new FieldDescriptorProto();
-        $generator = new ReadFieldStatementGenerator($proto, $this->options, $this->package);
+        $context = $this->createMessagesContext([
+            1  => ['phone', Field::TYPE_MESSAGE, Field::LABEL_REQUIRED, 'ProtobufCompiler.Proto.PhoneNumber']
+        ]);
 
-        $field->setNumber(1);
-        $field->setName('phone');
-        $field->setType(FieldDescriptorProto\Type::TYPE_MESSAGE());
-        $field->setLabel(FieldDescriptorProto\Label::LABEL_REQUIRED());
-        $field->setTypeName('ProtobufCompiler.Proto.PhoneNumber');
+        $generator = new ReadFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
 
-        $actual   = $generator->generateFieldReadStatement($field);
+        $actual   = $generator->generateFieldReadStatement($entity, $field);
         $expected = <<<'CODE'
 \Protobuf\WireFormat::assertWireType($wire, 11);
 
@@ -146,17 +147,16 @@ CODE;
 
     public function testGenerateReadMessageRepeatedStatement()
     {
-        $proto     = new DescriptorProto();
-        $field     = new FieldDescriptorProto();
-        $generator = new ReadFieldStatementGenerator($proto, $this->options, $this->package);
+        $context = $this->createMessagesContext([
+            1  => ['files', Field::TYPE_MESSAGE, Field::LABEL_REPEATED, 'ProtobufCompiler.Proto.File']
+        ]);
 
-        $field->setNumber(1);
-        $field->setName('files');
-        $field->setTypeName('ProtobufCompiler.Proto.File');
-        $field->setType(FieldDescriptorProto\Type::TYPE_MESSAGE());
-        $field->setLabel(FieldDescriptorProto\Label::LABEL_REPEATED());
+        $generator = new ReadFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
 
-        $actual   = $generator->generateFieldReadStatement($field);
+        $actual   = $generator->generateFieldReadStatement($entity, $field);
         $expected = <<<'CODE'
 \Protobuf\WireFormat::assertWireType($wire, 11);
 
@@ -181,19 +181,19 @@ CODE;
 
     public function testGenerateReadInt32IntoVariableStatement()
     {
-        $proto     = new DescriptorProto();
-        $field     = new FieldDescriptorProto();
-        $generator = new ReadFieldStatementGenerator($proto, $this->options, $this->package);
+        $context = $this->createMessagesContext([
+            1  => ['count', Field::TYPE_INT32, Field::LABEL_REQUIRED]
+        ]);
+
+        $generator = new ReadFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
 
         $generator->setTargetVar('$count');
         $generator->setBreakMode(ReadFieldStatementGenerator::BREAK_MODE_RETURN);
 
-        $field->setNumber(1);
-        $field->setName('count');
-        $field->setType(FieldDescriptorProto\Type::TYPE_INT32());
-        $field->setLabel(FieldDescriptorProto\Label::LABEL_REQUIRED());
-
-        $actual   = $generator->generateFieldReadStatement($field);
+        $actual   = $generator->generateFieldReadStatement($entity, $field);
         $expected = <<<'CODE'
 \Protobuf\WireFormat::assertWireType($wire, 5);
 
@@ -211,8 +211,8 @@ CODE;
      */
     public function testGenerateReadScalarStatementException()
     {
-        $proto     = new DescriptorProto();
-        $generator = new ReadFieldStatementGenerator($proto, $this->options, $this->package);
+        $context   = $this->createMessagesContext([]);
+        $generator = new ReadFieldStatementGenerator($context);
 
         $this->invokeMethod($generator, 'generateReadScalarStatement', [-123]);
     }

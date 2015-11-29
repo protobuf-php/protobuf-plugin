@@ -33,23 +33,39 @@ class EntityBuilder
     /**
      * @return array
      */
+    public function getFileToGenerateMap()
+    {
+        $map  = [];
+        $list = $this->request->getFileToGenerateList();
+
+        if ($list === null) {
+            return $map;
+        }
+
+        foreach ($list as $fileName) {
+            $map[$fileName] = $fileName;
+        }
+
+        return $map;
+    }
+
+    /**
+     * @return array
+     */
     public function buildEntities()
     {
-        $result       = [];
-        $protoList    = $this->request->getProtoFileList();
-        $generateList = $this->request->hasFileToGenerateList()
-            ? $this->request->getFileToGenerateList()->getArrayCopy()
-            : [];
+        $result      = [];
+        $generateMap = $this->getFileToGenerateMap();
+        $protoList   = $this->request->getProtoFileList();
 
-
-        if (empty($protoList)) {
+        if ($protoList === null) {
             return $result;
         }
 
         foreach ($protoList as $descriptor) {
 
-            $entities   = $this->buildFileEntities($descriptor);
-            $toGenerate = in_array($descriptor->getName(), $generateList);
+            $fileName   = $descriptor->getName();
+            $toGenerate = isset($generateMap[$fileName]);
 
             foreach ($this->buildFileEntities($descriptor) as $entity) {
 
@@ -109,6 +125,10 @@ class EntityBuilder
             return true;
         }
 
+        if ($messages === null) {
+            return false;
+        }
+
         foreach ($messages as $message) {
             if ($message->hasExtensionList()) {
                 return true;
@@ -124,7 +144,7 @@ class EntityBuilder
      *
      * @return array
      */
-    protected function generateMessages(Traversable $messages, $package)
+    protected function generateMessages($messages, $package)
     {
         $result = [];
 
@@ -154,7 +174,7 @@ class EntityBuilder
      *
      * @return array
      */
-    protected function generateServices(Traversable $services, $package)
+    protected function generateServices($services, $package)
     {
         $result = [];
 
@@ -171,7 +191,7 @@ class EntityBuilder
      *
      * @return array
      */
-    protected function generateEnums(Traversable $enums, $package)
+    protected function generateEnums($enums, $package)
     {
         $result = [];
 

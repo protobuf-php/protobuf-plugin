@@ -7,40 +7,42 @@ use google\protobuf\FieldDescriptorProto;
 use google\protobuf\DescriptorProto;
 use ProtobufCompilerTest\TestCase;
 use google\protobuf\FieldOptions;
+use Protobuf\Field;
 
 class WriteFieldStatementGeneratorTest extends TestCase
 {
-    /**
-     * @var \Protobuf\Compiler\Options
-     */
-    protected $options;
+    protected $messageClass = 'ProtobufCompilerTest.Protos.Simple';
 
-    /**
-     * @var string
-     */
-    protected $package;
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function setUp()
+    public function createMessagesContext(array $fields)
     {
-        $this->package = 'ProtobufCompiler.Proto';
-        $this->options = $this->getMock('Protobuf\Compiler\Options');
+        return $this->createContext([
+            [
+                'name'    => 'simple.proto',
+                'package' => 'ProtobufCompilerTest.Protos',
+                'values'  => [
+                    'messages' => [
+                        [
+                            'name'   => 'Simple',
+                            'fields' => $fields
+                        ]
+                    ]
+                ]
+            ]
+        ]);
     }
 
     public function testGenerateWriteInt32Statement()
     {
-        $proto     = new DescriptorProto();
-        $field     = new FieldDescriptorProto();
-        $generator = new WriteFieldStatementGenerator($proto, $this->options, $this->package);
+        $context = $this->createMessagesContext([
+            1  => ['count', Field::TYPE_INT32, Field::LABEL_REQUIRED]
+        ]);
 
-        $field->setNumber(1);
-        $field->setName('count');
-        $field->setType(FieldDescriptorProto\Type::TYPE_INT32());
-        $field->setLabel(FieldDescriptorProto\Label::LABEL_REQUIRED());
+        $generator = new WriteFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
 
-        $actual   =  $generator->generateFieldWriteStatement($field);
+        $actual   = $generator->generateFieldWriteStatement($entity, $field);
         $expected = <<<'CODE'
 $writer->writeVarint($stream, 8);
 $writer->writeVarint($stream, $this->count);
@@ -51,20 +53,20 @@ CODE;
 
     public function testGenerateWriteStringRepeatedStatement()
     {
-        $proto     = new DescriptorProto();
-        $field     = new FieldDescriptorProto();
-        $generator = new WriteFieldStatementGenerator($proto, $this->options, $this->package);
+        $context = $this->createMessagesContext([
+            1  => ['lines', Field::TYPE_STRING, Field::LABEL_REPEATED]
+        ]);
 
-        $field->setNumber(1);
-        $field->setName('lines');
-        $field->setType(FieldDescriptorProto\Type::TYPE_INT32());
-        $field->setLabel(FieldDescriptorProto\Label::LABEL_REPEATED());
+        $generator = new WriteFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
 
-        $actual   =  $generator->generateFieldWriteStatement($field);
+        $actual   = $generator->generateFieldWriteStatement($entity, $field);
         $expected = <<<'CODE'
 foreach ($this->lines as $val) {
-    $writer->writeVarint($stream, 8);
-    $writer->writeVarint($stream, $val);
+    $writer->writeVarint($stream, 10);
+    $writer->writeString($stream, $val);
 }
 CODE;
 
@@ -73,20 +75,20 @@ CODE;
 
     public function testGenerateWritePackedInt32Statement()
     {
-        $options   = new FieldOptions();
-        $proto     = new DescriptorProto();
-        $field     = new FieldDescriptorProto();
-        $generator = new WriteFieldStatementGenerator($proto, $this->options, $this->package);
+        $options = new FieldOptions();
+        $context = $this->createMessagesContext([
+            1  => ['tags', Field::TYPE_INT32, Field::LABEL_REPEATED]
+        ]);
+
+        $generator = new WriteFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
 
         $options->setPacked(true);
-
-        $field->setNumber(1);
-        $field->setName('tags');
         $field->setOptions($options);
-        $field->setType(FieldDescriptorProto\Type::TYPE_INT32());
-        $field->setLabel(FieldDescriptorProto\Label::LABEL_REPEATED());
 
-        $actual   =  $generator->generateFieldWriteStatement($field);
+        $actual   = $generator->generateFieldWriteStatement($entity, $field);
         $expected = <<<'CODE'
 $innerSize   = 0;
 $calculator  = $sizeContext->getSizeCalculator();
@@ -108,17 +110,16 @@ CODE;
 
     public function testGenerateWriteMessageStatement()
     {
-        $proto     = new DescriptorProto();
-        $field     = new FieldDescriptorProto();
-        $generator = new WriteFieldStatementGenerator($proto, $this->options, $this->package);
+        $context = $this->createMessagesContext([
+            1  => ['phone', Field::TYPE_MESSAGE, Field::LABEL_REQUIRED, 'ProtobufCompiler.Proto.PhoneNumber']
+        ]);
 
-        $field->setNumber(1);
-        $field->setName('phone');
-        $field->setType(FieldDescriptorProto\Type::TYPE_MESSAGE());
-        $field->setLabel(FieldDescriptorProto\Label::LABEL_REQUIRED());
-        $field->setTypeName('ProtobufCompiler.Proto.PhoneNumber');
+        $generator = new WriteFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
 
-        $actual   =  $generator->generateFieldWriteStatement($field);
+        $actual   = $generator->generateFieldWriteStatement($entity, $field);
         $expected = <<<'CODE'
 $writer->writeVarint($stream, 10);
 $writer->writeVarint($stream, $this->phone->serializedSize($sizeContext));
@@ -130,17 +131,16 @@ CODE;
 
     public function testGenerateWriteMessageRepeatedStatement()
     {
-        $proto     = new DescriptorProto();
-        $field     = new FieldDescriptorProto();
-        $generator = new WriteFieldStatementGenerator($proto, $this->options, $this->package);
+        $context = $this->createMessagesContext([
+            1  => ['files', Field::TYPE_MESSAGE, Field::LABEL_REPEATED, 'ProtobufCompiler.Proto.File']
+        ]);
 
-        $field->setNumber(1);
-        $field->setName('files');
-        $field->setTypeName('ProtobufCompiler.Proto.File');
-        $field->setType(FieldDescriptorProto\Type::TYPE_MESSAGE());
-        $field->setLabel(FieldDescriptorProto\Label::LABEL_REPEATED());
+        $generator = new WriteFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
 
-        $actual   =  $generator->generateFieldWriteStatement($field);
+        $actual   = $generator->generateFieldWriteStatement($entity, $field);
         $expected = <<<'CODE'
 foreach ($this->files as $val) {
     $writer->writeVarint($stream, 10);
@@ -154,18 +154,18 @@ CODE;
 
     public function testGenerateWriteInt32FromVariableStatement()
     {
-        $proto     = new DescriptorProto();
-        $field     = new FieldDescriptorProto();
-        $generator = new WriteFieldStatementGenerator($proto, $this->options, $this->package);
+        $context = $this->createMessagesContext([
+            1  => ['count', Field::TYPE_INT32, Field::LABEL_REQUIRED]
+        ]);
+
+        $generator = new WriteFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
 
         $generator->setTargetVar('$count');
 
-        $field->setNumber(1);
-        $field->setName('count');
-        $field->setType(FieldDescriptorProto\Type::TYPE_INT32());
-        $field->setLabel(FieldDescriptorProto\Label::LABEL_REQUIRED());
-
-        $actual   =  $generator->generateFieldWriteStatement($field);
+        $actual   = $generator->generateFieldWriteStatement($entity, $field);
         $expected = <<<'CODE'
 $writer->writeVarint($stream, 8);
 $writer->writeVarint($stream, $count);
@@ -180,8 +180,8 @@ CODE;
      */
     public function testGenerateReadScalarStatementException()
     {
-        $proto     = new DescriptorProto();
-        $generator = new WriteFieldStatementGenerator($proto, $this->options, $this->package);
+        $context   = $this->createMessagesContext([]);
+        $generator = new WriteFieldStatementGenerator($context);
 
         $this->invokeMethod($generator, 'generateWriteScalarStatement', [-123, 123]);
     }

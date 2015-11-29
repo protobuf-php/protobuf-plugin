@@ -7,40 +7,42 @@ use google\protobuf\FieldDescriptorProto;
 use google\protobuf\DescriptorProto;
 use ProtobufCompilerTest\TestCase;
 use google\protobuf\FieldOptions;
+use Protobuf\Field;
 
 class SerializedSizeFieldStatementGeneratorTest extends TestCase
 {
-    /**
-     * @var \Protobuf\Compiler\Options
-     */
-    protected $options;
+    protected $messageClass = 'ProtobufCompilerTest.Protos.Simple';
 
-    /**
-     * @var string
-     */
-    protected $package;
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function setUp()
+    public function createMessagesContext(array $fields)
     {
-        $this->package = 'ProtobufCompiler.Proto';
-        $this->options = $this->getMock('Protobuf\Compiler\Options');
+        return $this->createContext([
+            [
+                'name'    => 'simple.proto',
+                'package' => 'ProtobufCompilerTest.Protos',
+                'values'  => [
+                    'messages' => [
+                        [
+                            'name'   => 'Simple',
+                            'fields' => $fields
+                        ]
+                    ]
+                ]
+            ]
+        ]);
     }
 
     public function testGenerateComputeInt32Statement()
     {
-        $proto     = new DescriptorProto();
-        $field     = new FieldDescriptorProto();
-        $generator = new SerializedSizeFieldStatementGenerator($proto, $this->options, $this->package);
+        $context = $this->createMessagesContext([
+            1  => ['count', Field::TYPE_INT32, Field::LABEL_REQUIRED]
+        ]);
 
-        $field->setNumber(1);
-        $field->setName('count');
-        $field->setType(FieldDescriptorProto\Type::TYPE_INT32());
-        $field->setLabel(FieldDescriptorProto\Label::LABEL_REQUIRED());
+        $generator = new SerializedSizeFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
 
-        $actual   = $generator->generateFieldSizeStatement($field);
+        $actual   = $generator->generateFieldSizeStatement($entity, $field);
         $expected = <<<'CODE'
 $size += 1;
 $size += $calculator->computeVarintSize($this->count);
@@ -51,20 +53,20 @@ CODE;
 
     public function testGenerateComputeStringRepeatedStatement()
     {
-        $proto     = new DescriptorProto();
-        $field     = new FieldDescriptorProto();
-        $generator = new SerializedSizeFieldStatementGenerator($proto, $this->options, $this->package);
+        $context = $this->createMessagesContext([
+            1  => ['lines', Field::TYPE_STRING, Field::LABEL_REPEATED]
+        ]);
 
-        $field->setNumber(1);
-        $field->setName('lines');
-        $field->setType(FieldDescriptorProto\Type::TYPE_INT32());
-        $field->setLabel(FieldDescriptorProto\Label::LABEL_REPEATED());
+        $generator = new SerializedSizeFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
 
-        $actual   = $generator->generateFieldSizeStatement($field);
+        $actual   = $generator->generateFieldSizeStatement($entity, $field);
         $expected = <<<'CODE'
 foreach ($this->lines as $val) {
     $size += 1;
-    $size += $calculator->computeVarintSize($val);
+    $size += $calculator->computeStringSize($val);
 }
 CODE;
 
@@ -73,20 +75,20 @@ CODE;
 
     public function testGenerateComputePackedInt32Statement()
     {
-        $options   = new FieldOptions();
-        $proto     = new DescriptorProto();
-        $field     = new FieldDescriptorProto();
-        $generator = new SerializedSizeFieldStatementGenerator($proto, $this->options, $this->package);
+        $options = new FieldOptions();
+        $context = $this->createMessagesContext([
+            1  => ['tags', Field::TYPE_INT32, Field::LABEL_REPEATED]
+        ]);
+
+        $generator = new SerializedSizeFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
 
         $options->setPacked(true);
-
-        $field->setNumber(1);
-        $field->setName('tags');
         $field->setOptions($options);
-        $field->setType(FieldDescriptorProto\Type::TYPE_INT32());
-        $field->setLabel(FieldDescriptorProto\Label::LABEL_REPEATED());
 
-        $actual   = $generator->generateFieldSizeStatement($field);
+        $actual   = $generator->generateFieldSizeStatement($entity, $field);
         $expected = <<<'CODE'
 $innerSize = 0;
 
@@ -104,17 +106,16 @@ CODE;
 
     public function testGenerateComputeMessageStatement()
     {
-        $proto     = new DescriptorProto();
-        $field     = new FieldDescriptorProto();
-        $generator = new SerializedSizeFieldStatementGenerator($proto, $this->options, $this->package);
+        $context = $this->createMessagesContext([
+            1  => ['phone', Field::TYPE_MESSAGE, Field::LABEL_REQUIRED, 'ProtobufCompiler.Proto.PhoneNumber']
+        ]);
 
-        $field->setNumber(1);
-        $field->setName('phone');
-        $field->setType(FieldDescriptorProto\Type::TYPE_MESSAGE());
-        $field->setLabel(FieldDescriptorProto\Label::LABEL_REQUIRED());
-        $field->setTypeName('ProtobufCompiler.Proto.PhoneNumber');
+        $generator = new SerializedSizeFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
 
-        $actual   = $generator->generateFieldSizeStatement($field);
+        $actual   = $generator->generateFieldSizeStatement($entity, $field);
         $expected = <<<'CODE'
 $innerSize = $this->phone->serializedSize($context);
 
@@ -128,17 +129,16 @@ CODE;
 
     public function testGenerateComputeMessageRepeatedStatement()
     {
-        $proto     = new DescriptorProto();
-        $field     = new FieldDescriptorProto();
-        $generator = new SerializedSizeFieldStatementGenerator($proto, $this->options, $this->package);
+        $context = $this->createMessagesContext([
+            1  => ['files', Field::TYPE_MESSAGE, Field::LABEL_REPEATED, 'ProtobufCompiler.Proto.File']
+        ]);
 
-        $field->setNumber(1);
-        $field->setName('files');
-        $field->setTypeName('ProtobufCompiler.Proto.File');
-        $field->setType(FieldDescriptorProto\Type::TYPE_MESSAGE());
-        $field->setLabel(FieldDescriptorProto\Label::LABEL_REPEATED());
+        $generator = new SerializedSizeFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
 
-        $actual   = $generator->generateFieldSizeStatement($field);
+        $actual   = $generator->generateFieldSizeStatement($entity, $field);
         $expected = <<<'CODE'
 foreach ($this->files as $val) {
     $innerSize = $val->serializedSize($context);

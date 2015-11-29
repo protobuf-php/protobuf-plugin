@@ -15,29 +15,17 @@ class BaseGeneratorTest extends TestCase
     protected $generator;
 
     /**
-     * @var \Protobuf\Compiler\Options
+     * @var \Protobuf\Compiler\Context
      */
-    protected $options;
-
-    /**
-     * @var \Protobuf\Message
-     */
-    protected $proto;
-
-    /**
-     * @var string
-     */
-    protected $package;
+    protected $context;
 
     /**
      * {@inheritdoc}
      */
     protected function setUp()
     {
-        $this->package   = 'ProtobufCompiler.Proto';
-        $this->proto     = $this->getMock('Protobuf\Message');
-        $this->options   = $this->getMock('Protobuf\Compiler\Options');
-        $this->generator = new BaseGenerator($this->proto, $this->options, $this->package);
+        $this->context   = $this->getMock('Protobuf\Compiler\Context', [], [], '', false);
+        $this->generator = new BaseGenerator($this->context);
     }
 
     public function testGetDoctype()
@@ -130,7 +118,7 @@ class BaseGeneratorTest extends TestCase
         $field->setLabel($label);
         $field->setTypeName($ref);
 
-        $expected = '\Doctrine\Common\Collections\Collection';
+        $expected = '\Protobuf\Collection';
         $actual   = $this->invokeMethod($this->generator, 'getTypeHint', [$field]);
 
         $this->assertEquals($expected, $actual);
@@ -147,7 +135,7 @@ class BaseGeneratorTest extends TestCase
 
         $actual = $this->invokeMethod($this->generator, 'getTypeHint', [$field]);
 
-        $this->assertNull($actual);
+        $this->assertEquals('int', $actual);
     }
 
     public function testGetUniqueFieldName()

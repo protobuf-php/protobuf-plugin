@@ -450,10 +450,21 @@ class MessageGenerator extends BaseGenerator
     protected function generateAddMethod(Entity $entity, FieldDescriptorProto $field)
     {
         $fieldName  = $field->getName();
+        $fieldType  = $field->getTypeName();
         $methodName = 'add' . $this->getClassifiedName($field);
-        $method     = MethodGenerator::fromArray([
+        $collClass  = ($fieldType !== null)
+            ? '\Protobuf\MessageCollection'
+            : '\Protobuf\ScalarCollection';
+
+        $lines[] = 'if ( $this->' . $fieldName . ' === null) {';
+        $lines[] = '    $this->' . $fieldName . ' = new ' . $collClass . '();';
+        $lines[] = '}';
+        $lines[] = null;
+        $lines[] = '$this->' . $fieldName . '[] = $value;';
+
+        return MethodGenerator::fromArray([
             'name'       => $methodName,
-            'body'       => '$this->' . $fieldName . '[] = $value;',
+            'body'       => implode(PHP_EOL, $lines),
             'parameters' => [
                 [
                     'name'   => 'value',
@@ -470,8 +481,6 @@ class MessageGenerator extends BaseGenerator
                 ]
             ]
         ]);
-
-        return $method;
     }
 
     /**
