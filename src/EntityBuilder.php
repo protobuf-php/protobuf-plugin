@@ -151,7 +151,9 @@ class EntityBuilder
             $entity        = $this->generateMessage($fileDescriptor, $message, $parent);
             $innerMessages = $message->getNestedTypeList();
             $innerEnums    = $message->getEnumTypeList();
-            $innerParent   = $entity->getName();
+            $innerParent   = ($parent !== null)
+                ? $parent . '.' . $entity->getName()
+                : $entity->getName();
 
             $result[] = $entity;
 
