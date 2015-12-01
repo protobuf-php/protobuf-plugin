@@ -88,23 +88,22 @@ class EntityBuilder
         $messages   = $fileDescriptor->getMessageTypeList();
         $enums      = $fileDescriptor->getEnumTypeList();
         $services   = $fileDescriptor->getServiceList();
-        $package    = $fileDescriptor->getPackage();
         $result     = [];
 
         if ($messages !== null) {
-            $result = array_merge($result, $this->generateMessages($fileDescriptor, $messages, $package));
+            $result = array_merge($result, $this->generateMessages($fileDescriptor, $messages));
         }
 
         if ($services !== null) {
-            $result = array_merge($result, $this->generateServices($fileDescriptor, $services, $package));
+            $result = array_merge($result, $this->generateServices($fileDescriptor, $services));
         }
 
         if ($enums !== null) {
-            $result = array_merge($result, $this->generateEnums($fileDescriptor, $enums, $package));
+            $result = array_merge($result, $this->generateEnums($fileDescriptor, $enums));
         }
 
         if ($this->hasExtension($fileDescriptor)) {
-            $result[] = $this->generateExtension($fileDescriptor, $package);
+            $result[] = $this->generateExtension($fileDescriptor);
         }
 
         return $result;
@@ -140,28 +139,28 @@ class EntityBuilder
     /**
      * @param \google\protobuf\FileDescriptorProto $fileDescriptor
      * @param \Traversable                         $messages
-     * @param string                               $package
+     * @param string                               $parent
      *
      * @return array
      */
-    protected function generateMessages(FileDescriptorProto $fileDescriptor, Traversable $messages, $package)
+    protected function generateMessages(FileDescriptorProto $fileDescriptor, Traversable $messages, $parent = null)
     {
         $result = [];
 
         foreach ($messages as $message) {
-            $entity        = $this->generateMessage($fileDescriptor, $message, $package);
+            $entity        = $this->generateMessage($fileDescriptor, $message, $parent);
             $innerMessages = $message->getNestedTypeList();
             $innerEnums    = $message->getEnumTypeList();
-            $innerPackage  = $entity->getClass();
+            $innerParent   = $entity->getName();
 
             $result[] = $entity;
 
             if ($innerMessages) {
-                $result = array_merge($result, $this->generateMessages($fileDescriptor, $innerMessages, $innerPackage));
+                $result = array_merge($result, $this->generateMessages($fileDescriptor, $innerMessages, $innerParent));
             }
 
             if ($innerEnums) {
-                $result = array_merge($result, $this->generateEnums($fileDescriptor, $innerEnums, $innerPackage));
+                $result = array_merge($result, $this->generateEnums($fileDescriptor, $innerEnums, $innerParent));
             }
         }
 
@@ -171,16 +170,16 @@ class EntityBuilder
     /**
      * @param \google\protobuf\FileDescriptorProto $fileDescriptor
      * @param \Traversable                         $services
-     * @param string                               $package
+     * @param string                               $parent
      *
      * @return array
      */
-    protected function generateServices(FileDescriptorProto $fileDescriptor, Traversable $services, $package)
+    protected function generateServices(FileDescriptorProto $fileDescriptor, Traversable $services, $parent = null)
     {
         $result = [];
 
         foreach ($services as $service) {
-            $result[] = $this->generateService($fileDescriptor, $service, $package);
+            $result[] = $this->generateService($fileDescriptor, $service, $parent);
         }
 
         return $result;
@@ -189,16 +188,16 @@ class EntityBuilder
     /**
      * @param \google\protobuf\FileDescriptorProto $fileDescriptor
      * @param \Traversable                         $enums
-     * @param string                               $package
+     * @param string                               $parent
      *
      * @return array
      */
-    protected function generateEnums(FileDescriptorProto $fileDescriptor, Traversable $enums, $package)
+    protected function generateEnums(FileDescriptorProto $fileDescriptor, Traversable $enums, $parent = null)
     {
         $result = [];
 
         foreach ($enums as $enum) {
-            $result[] = $this->generateEnum($fileDescriptor, $enum, $package);
+            $result[] = $this->generateEnum($fileDescriptor, $enum, $parent);
         }
 
         return $result;
@@ -206,16 +205,15 @@ class EntityBuilder
 
     /**
      * @param \google\protobuf\FileDescriptorProto $fileDescriptor
-     * @param string                               $package
+     * @param string                               $parent
      *
      * @return \Protobuf\Compiler\Entity
      */
-    protected function generateExtension(FileDescriptorProto $fileDescriptor, $package)
+    protected function generateExtension(FileDescriptorProto $fileDescriptor, $parent = null)
     {
         $name   = 'Extension';
         $type   = Entity::TYPE_EXTENSION;
-        $class  = $package . '.' . $name;
-        $entity = new Entity($type, $class, $fileDescriptor, $fileDescriptor);
+        $entity = new Entity($type, $name, $fileDescriptor, $fileDescriptor, $parent);
 
         return $entity;
     }
@@ -223,15 +221,15 @@ class EntityBuilder
     /**
      * @param \google\protobuf\FileDescriptorProto $fileDescriptor
      * @param \google\protobuf\EnumDescriptorProto $enumDescriptor
-     * @param string                               $package
+     * @param string                               $parent
      *
      * @return \Protobuf\Compiler\Entity
      */
-    protected function generateEnum(FileDescriptorProto $fileDescriptor, EnumDescriptorProto $enumDescriptor, $package)
+    protected function generateEnum(FileDescriptorProto $fileDescriptor, EnumDescriptorProto $enumDescriptor, $parent = null)
     {
         $type   = Entity::TYPE_ENUM;
-        $class  = $package . '.' . $enumDescriptor->getName();
-        $entity = new Entity($type, $class, $enumDescriptor, $fileDescriptor);
+        $name   = $enumDescriptor->getName();
+        $entity = new Entity($type, $name, $enumDescriptor, $fileDescriptor, $parent);
 
         return $entity;
     }
@@ -239,15 +237,15 @@ class EntityBuilder
     /**
      * @param \google\protobuf\FileDescriptorProto    $fileDescriptor
      * @param \google\protobuf\ServiceDescriptorProto $serviceDescriptor
-     * @param string                                  $package
+     * @param string                                  $parent
      *
      * @return \Protobuf\Compiler\Entity
      */
-    protected function generateService(FileDescriptorProto $fileDescriptor, ServiceDescriptorProto $serviceDescriptor, $package)
+    protected function generateService(FileDescriptorProto $fileDescriptor, ServiceDescriptorProto $serviceDescriptor, $parent = null)
     {
         $type   = Entity::TYPE_SERVICE;
-        $class  = $package . '.' . $serviceDescriptor->getName();
-        $entity = new Entity($type, $class, $serviceDescriptor, $fileDescriptor);
+        $name   = $serviceDescriptor->getName();
+        $entity = new Entity($type, $name, $serviceDescriptor, $fileDescriptor, $parent);
 
         return $entity;
     }
@@ -255,15 +253,15 @@ class EntityBuilder
     /**
      * @param \google\protobuf\FileDescriptorProto $fileDescriptor
      * @param \google\protobuf\DescriptorProto     $messageDescriptor
-     * @param string                               $package
+     * @param string                               $parent
      *
      * @return \Protobuf\Compiler\Entity
      */
-    protected function generateMessage(FileDescriptorProto $fileDescriptor, DescriptorProto $messageDescriptor, $package)
+    protected function generateMessage(FileDescriptorProto $fileDescriptor, DescriptorProto $messageDescriptor, $parent = null)
     {
         $type   = Entity::TYPE_MESSAGE;
-        $class  = $package . '.' . $messageDescriptor->getName();
-        $entity = new Entity($type, $class, $messageDescriptor, $fileDescriptor);
+        $name   = $messageDescriptor->getName();
+        $entity = new Entity($type, $name, $messageDescriptor, $fileDescriptor, $parent);
 
         return $entity;
     }

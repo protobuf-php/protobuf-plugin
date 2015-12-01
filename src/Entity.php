@@ -31,7 +31,12 @@ class Entity
     /**
      * @var string
      */
-    protected $class;
+    protected $name;
+
+    /**
+     * @var string
+     */
+    protected $parent;
 
     /**
      * @var string
@@ -55,14 +60,16 @@ class Entity
 
     /**
      * @param string                               $type
-     * @param string                               $class
+     * @param string                               $name
      * @param \Protobuf\Message                    $descriptor
      * @param \google\protobuf\FileDescriptorProto $fileDescriptor
+     * @param string                               $parent
      */
-    public function __construct($type, $class, Message $descriptor, FileDescriptorProto $fileDescriptor)
+    public function __construct($type, $name, Message $descriptor, FileDescriptorProto $fileDescriptor, $parent = null)
     {
         $this->type           = $type;
-        $this->class          = $class;
+        $this->name           = $name;
+        $this->parent         = $parent;
         $this->descriptor     = $descriptor;
         $this->fileDescriptor = $fileDescriptor;
     }
@@ -88,7 +95,14 @@ class Entity
      */
     public function getClass()
     {
-        return $this->class;
+        $name    = $this->getName();
+        $package = $this->getPackage();
+
+        if ( ! $package) {
+            return $name;
+        }
+
+        return $package . '.' . $name;
     }
 
     /**
@@ -96,14 +110,7 @@ class Entity
      */
     public function getName()
     {
-        if (strpos($this->class, '.') === false) {
-            return $this->class;
-        }
-
-        $index = strrpos($this->class, '.');
-        $name  = substr($this->class, $index + 1);
-
-        return trim($name, '.');
+        return $this->name;
     }
 
     /**
@@ -111,14 +118,10 @@ class Entity
      */
     public function getPackage()
     {
-        if (strpos($this->class, '.') === false) {
-            return null;
-        }
+        $parent  = $this->parent;
+        $package = $this->fileDescriptor->getPackage();
 
-        $index   = strrpos($this->class, '.');
-        $package = substr($this->class, 0, $index);
-
-        return trim($package, '.');
+        return $this->buildPackage($package, $parent);
     }
 
     /**
@@ -131,7 +134,7 @@ class Entity
         $extensions = $this->getFileOptionsExtensions();
 
         if ($extensions !== null && $extensions->offsetExists($extension)) {
-            $package = $extensions->get($extension);
+            $package = $this->buildPackage($extensions->get($extension), $this->parent);
         }
 
         if ($package === null) {
@@ -222,5 +225,28 @@ class Entity
         }
 
         return $this->fileDescriptor->getOptions()->extensions();
+    }
+
+    /**
+     * @param string $package
+     * @param string $parent
+     *
+     * @return string
+     */
+    public function buildPackage($package, $parent)
+    {
+        if ($package !== null) {
+            $package = trim($package, '.');
+        }
+
+        if ($package === null && $parent !== null) {
+            return $parent;
+        }
+
+        if ($package !== null && $parent === null) {
+            return $package;
+        }
+
+        return $package . '.' . $parent;
     }
 }
