@@ -8,6 +8,8 @@ use Protobuf\Descriptor;
 use Protobuf\Compiler\Options;
 use Protobuf\Compiler\Context;
 use Protobuf\Compiler\Generator;
+
+use google\protobuf\php\Extension;
 use google\protobuf\SourceCodeInfo;
 use google\protobuf\DescriptorProto;
 use google\protobuf\EnumDescriptorProto;
@@ -23,6 +25,7 @@ class GeneratorTest extends TestCase
     public function descriptorProvider()
     {
         return [
+
             // simple message
             [
                 'Simple.tpl',
@@ -181,7 +184,72 @@ class GeneratorTest extends TestCase
                         ]
                     ]
                 ]
-            ]
+            ],
+
+            // message using php.package
+            [
+                'Options/SimpleMessage.tpl',
+                'ProtobufCompilerTest.Protos.SimpleMessage',
+                [
+                    'name'    => 'php_options.proto',
+                    'package' => 'ProtobufCompilerTest.Protos',
+                    'values'  => [
+                        'options' => [
+                            'extensions' => [
+                                [Extension::package(), 'ProtobufCompilerTest.Protos.Options']
+                            ]
+                        ],
+                        'messages' => [
+                            [
+                                'name'   => 'SimpleMessage',
+                                'fields' => []
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+/*
+            // Inner Enum using php.package
+            [
+                'Options/ParentMessage/InnerMessage/InnerMessageEnum.tpl',
+                'ProtobufCompilerTest.Protos.ParentMessage.InnerMessage.InnerMessageEnum',
+                [
+                    'name'    => 'php_options.proto',
+                    'package' => 'ProtobufCompilerTest.Protos',
+                    'values'  => [
+                        'options' => [
+                            'extensions' => [
+                                [Extension::package(), 'ProtobufCompilerTest.Protos.Options']
+                            ]
+                        ],
+                        'messages' => [
+                            [
+                                'name'   => 'ParentMessage',
+                                'fields' => [],
+                                'values' => [
+                                    'messages' => [
+                                        [
+                                            'name'   => 'InnerMessage',
+                                            'fields' => [],
+                                            'values' => [
+                                                'enums' => [
+                                                    [
+                                                        'name'   => 'InnerMessageEnum',
+                                                        'values' => [
+                                                            0 => 'VALUE'
+                                                        ]
+                                                    ]
+                                                ]
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+*/
         ];
     }
 
@@ -190,8 +258,7 @@ class GeneratorTest extends TestCase
      */
     public function testVisitEntity($fixture, $className, $descriptor)
     {
-        $context = $this->createContext([$descriptor]);
-
+        $context   = $this->createContext([$descriptor]);
         $expected  = $this->getFixtureFileContent($fixture);
         $entity    = $context->getEntity($className);
         $generator = new Generator($context);

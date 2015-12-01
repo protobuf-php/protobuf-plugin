@@ -7,6 +7,8 @@ use Protobuf\Compiler\Options;
 use Protobuf\Compiler\Context;
 use Protobuf\Compiler\EntityBuilder;
 
+
+use google\protobuf\FileOptions;
 use google\protobuf\DescriptorProto;
 use google\protobuf\EnumDescriptorProto;
 use google\protobuf\FileDescriptorProto;
@@ -216,6 +218,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     {
         $descriptor = new FileDescriptorProto();
         $extensions = isset($values['extensions']) ? $values['extensions'] : [];
+        $options    = isset($values['options']) ? $values['options'] : null;
         $messages   = isset($values['messages']) ? $values['messages'] : [];
         $services   = isset($values['services']) ? $values['services'] : [];
         $enums      = isset($values['enums']) ? $values['enums'] : [];
@@ -261,6 +264,23 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
 
         foreach ($services as $item) {
             $descriptor->addService($item);
+        }
+
+        if ($options !== null) {
+            $fileOptions = new FileOptions();
+            $optionsExt  = isset($options['extensions'])
+                ? $options['extensions']
+                : [];
+
+            if (isset($options['packed'])) {
+                $fileOptions->setPacked($options['packed']);
+            }
+
+            foreach ($optionsExt as $ext) {
+                $fileOptions->extensions()->put($ext[0], $ext[1]);
+            }
+
+            $descriptor->setOptions($fileOptions);
         }
 
         return $descriptor;
