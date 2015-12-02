@@ -269,12 +269,13 @@ class MessageGenerator extends BaseGenerator
     protected function generateExtensionMethod(Entity $entity, FieldDescriptorProto $field)
     {
         $fieldName  = $field->getName();
+        $methodName = $this->getCamelizedName($field);
         $bodyGen    = new ExtensionMethodBodyGenerator($this->context);
         $body       = implode(PHP_EOL, $bodyGen->generateBody($entity, $field));
         $method     = MethodGenerator::fromArray([
             'static'     => true,
             'body'       => $body,
-            'name'       => $fieldName,
+            'name'       => $methodName,
             'docblock'   => [
                 'shortDescription' => "Extension field : $fieldName",
                 'tags'             => [

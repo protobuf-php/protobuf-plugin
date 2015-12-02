@@ -152,6 +152,16 @@ class BaseGenerator
     }
 
     /**
+     * @param \google\protobuf\FieldDescriptorProto $field
+     *
+     * @return string
+     */
+    protected function getCamelizedName(FieldDescriptorProto $field)
+    {
+        return Inflector::camelize($field->getName());
+    }
+
+    /**
      * @param string                                $type
      * @param \google\protobuf\FieldDescriptorProto $field
      *

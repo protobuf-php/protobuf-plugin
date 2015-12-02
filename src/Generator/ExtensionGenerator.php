@@ -124,12 +124,13 @@ class ExtensionGenerator extends BaseGenerator
     {
         $fieldName  = $field->getName();
         $descriptor = $entity->getDescriptor();
+        $methodName = $this->getCamelizedName($field);
         $bodyGen    = new ExtensionMethodBodyGenerator($this->context);
         $body       = implode(PHP_EOL, $bodyGen->generateBody($entity, $field));
         $method     = MethodGenerator::fromArray([
             'static'     => true,
             'body'       => $body,
-            'name'       => $fieldName,
+            'name'       => $methodName,
             'docblock'   => [
                 'shortDescription' => "Extension field : $fieldName",
                 'tags'             => [
@@ -175,8 +176,8 @@ class ExtensionGenerator extends BaseGenerator
         }
 
         foreach ($fields as $field) {
-            $name  = $field->getName();
             $type  = $field->getTypeName();
+            $name  = $this->getCamelizedName($field);
 
             if ( ! $type) {
                 $lines[] = '$registry->add(self::' . $name . '());';
