@@ -9,6 +9,7 @@ use Protobuf\Compiler\EntityBuilder;
 
 
 use google\protobuf\FileOptions;
+use google\protobuf\FieldOptions;
 use google\protobuf\DescriptorProto;
 use google\protobuf\EnumDescriptorProto;
 use google\protobuf\FileDescriptorProto;
@@ -94,7 +95,8 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      */
     protected function createFieldDescriptorProto($number, $name, $type, $label, $typeName = null, array $values = [])
     {
-        $field = new FieldDescriptorProto();
+        $field   = new FieldDescriptorProto();
+        $options = isset($values['options']) ? $values['options'] : null;
 
         $field->setName($name);
         $field->setNumber($number);
@@ -105,6 +107,17 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         if (isset($values['default'])) {
             $field->setDefaultValue($values['default']);
         }
+
+        if ($options !== null) {
+            $fieldOptions = new FieldOptions();
+
+            if (isset($options['packed'])) {
+                $fieldOptions->setPacked($options['packed']);
+            }
+
+            $field->setOptions($fieldOptions);
+        }
+
 
         return $field;
     }

@@ -11,8 +11,6 @@ use Protobuf\Field;
 
 class SerializedSizeFieldStatementGeneratorTest extends TestCase
 {
-    protected $messageClass = 'ProtobufCompilerTest.Protos.Simple';
-
     public function createMessagesContext(array $fields)
     {
         return $this->createContext([
@@ -31,65 +29,40 @@ class SerializedSizeFieldStatementGeneratorTest extends TestCase
         ]);
     }
 
-    public function testGenerateComputeInt32Statement()
+    public function descriptorProvider()
     {
-        $context = $this->createMessagesContext([
-            1  => ['count', Field::TYPE_INT32, Field::LABEL_REQUIRED]
-        ]);
+        return [
 
-        $generator = new SerializedSizeFieldStatementGenerator($context);
-        $entity    = $context->getEntity($this->messageClass);
-        $descritor = $entity->getDescriptor();
-        $field     = $descritor->getFieldList()[0];
-
-        $actual   = $generator->generateFieldSizeStatement($entity, $field);
-        $expected = <<<'CODE'
+            // required int32
+            [
+                [
+                    1  => ['count', Field::TYPE_INT32, Field::LABEL_REQUIRED]
+                ],
+                <<<'CODE'
 $size += 1;
 $size += $calculator->computeVarintSize($this->count);
-CODE;
+CODE
+            ],
 
-        $this->assertEquals($expected, implode(PHP_EOL, $actual));
-    }
-
-    public function testGenerateComputeStringRepeatedStatement()
-    {
-        $context = $this->createMessagesContext([
-            1  => ['lines', Field::TYPE_STRING, Field::LABEL_REPEATED]
-        ]);
-
-        $generator = new SerializedSizeFieldStatementGenerator($context);
-        $entity    = $context->getEntity($this->messageClass);
-        $descritor = $entity->getDescriptor();
-        $field     = $descritor->getFieldList()[0];
-
-        $actual   = $generator->generateFieldSizeStatement($entity, $field);
-        $expected = <<<'CODE'
+            // repeated string
+            [
+                [
+                    1  => ['lines', Field::TYPE_STRING, Field::LABEL_REPEATED]
+                ],
+                <<<'CODE'
 foreach ($this->lines as $val) {
     $size += 1;
     $size += $calculator->computeStringSize($val);
 }
-CODE;
+CODE
+            ],
 
-        $this->assertEquals($expected, implode(PHP_EOL, $actual));
-    }
-
-    public function testGenerateComputePackedInt32Statement()
-    {
-        $options = new FieldOptions();
-        $context = $this->createMessagesContext([
-            1  => ['tags', Field::TYPE_INT32, Field::LABEL_REPEATED]
-        ]);
-
-        $generator = new SerializedSizeFieldStatementGenerator($context);
-        $entity    = $context->getEntity($this->messageClass);
-        $descritor = $entity->getDescriptor();
-        $field     = $descritor->getFieldList()[0];
-
-        $options->setPacked(true);
-        $field->setOptions($options);
-
-        $actual   = $generator->generateFieldSizeStatement($entity, $field);
-        $expected = <<<'CODE'
+            // required int32 packed
+            [
+                [
+                    1  => ['tags', Field::TYPE_INT32, Field::LABEL_REPEATED, null, [ 'options' => ['packed' => true] ]]
+                ],
+                <<<'CODE'
 $innerSize = 0;
 
 foreach ($this->tags as $val) {
@@ -99,47 +72,29 @@ foreach ($this->tags as $val) {
 $size += 1;
 $size += $innerSize;
 $size += $calculator->computeVarintSize($innerSize);
-CODE;
+CODE
+            ],
 
-        $this->assertEquals($expected, implode(PHP_EOL, $actual));
-    }
-
-    public function testGenerateComputeMessageStatement()
-    {
-        $context = $this->createMessagesContext([
-            1  => ['phone', Field::TYPE_MESSAGE, Field::LABEL_REQUIRED, 'ProtobufCompiler.Proto.PhoneNumber']
-        ]);
-
-        $generator = new SerializedSizeFieldStatementGenerator($context);
-        $entity    = $context->getEntity($this->messageClass);
-        $descritor = $entity->getDescriptor();
-        $field     = $descritor->getFieldList()[0];
-
-        $actual   = $generator->generateFieldSizeStatement($entity, $field);
-        $expected = <<<'CODE'
+            // required message
+            [
+                [
+                    1  => ['phone', Field::TYPE_MESSAGE, Field::LABEL_REQUIRED, 'ProtobufCompiler.Proto.PhoneNumber']
+                ],
+                <<<'CODE'
 $innerSize = $this->phone->serializedSize($context);
 
 $size += 1;
 $size += $innerSize;
 $size += $calculator->computeVarintSize($innerSize);
-CODE;
+CODE
+            ],
 
-        $this->assertEquals($expected, implode(PHP_EOL, $actual));
-    }
-
-    public function testGenerateComputeMessageRepeatedStatement()
-    {
-        $context = $this->createMessagesContext([
-            1  => ['files', Field::TYPE_MESSAGE, Field::LABEL_REPEATED, 'ProtobufCompiler.Proto.File']
-        ]);
-
-        $generator = new SerializedSizeFieldStatementGenerator($context);
-        $entity    = $context->getEntity($this->messageClass);
-        $descritor = $entity->getDescriptor();
-        $field     = $descritor->getFieldList()[0];
-
-        $actual   = $generator->generateFieldSizeStatement($entity, $field);
-        $expected = <<<'CODE'
+            // repeated message
+            [
+                [
+                    1  => ['files', Field::TYPE_MESSAGE, Field::LABEL_REPEATED, 'ProtobufCompiler.Proto.File']
+                ],
+                <<<'CODE'
 foreach ($this->files as $val) {
     $innerSize = $val->serializedSize($context);
 
@@ -147,7 +102,22 @@ foreach ($this->files as $val) {
     $size += $innerSize;
     $size += $calculator->computeVarintSize($innerSize);
 }
-CODE;
+CODE
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider descriptorProvider
+     */
+    public function testGenerateFieldSizeStatement($fields, $expected, $fieldIndex = 0)
+    {
+        $context   = $this->createMessagesContext($fields);
+        $entity    = $context->getEntity('ProtobufCompilerTest.Protos.Simple');
+        $generator = new SerializedSizeFieldStatementGenerator($context);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[$fieldIndex];
+        $actual    = $generator->generateFieldSizeStatement($entity, $field);
 
         $this->assertEquals($expected, implode(PHP_EOL, $actual));
     }

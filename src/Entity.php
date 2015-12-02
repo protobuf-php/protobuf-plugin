@@ -98,11 +98,7 @@ class Entity
         $name    = $this->getName();
         $package = $this->getPackage();
 
-        if ( ! $package) {
-            return $name;
-        }
-
-        return $package . '.' . $name;
+        return$this->fullyQualifiedName($package, $name);
     }
 
     /**
@@ -121,7 +117,7 @@ class Entity
         $parent  = $this->parent;
         $package = $this->fileDescriptor->getPackage();
 
-        return $this->buildPackage($package, $parent);
+        return $this->fullyQualifiedName($package, $parent);
     }
 
     /**
@@ -134,7 +130,7 @@ class Entity
         $extensions = $this->getFileOptionsExtensions();
 
         if ($extensions !== null && $extensions->offsetExists($extension)) {
-            $package = $this->buildPackage($extensions->get($extension), $this->parent);
+            $package = $this->fullyQualifiedName($extensions->get($extension), $this->parent);
         }
 
         if ($package === null) {
@@ -228,25 +224,14 @@ class Entity
     }
 
     /**
-     * @param string $package
-     * @param string $parent
-     *
      * @return string
      */
-    public function buildPackage($package, $parent)
+    protected function fullyQualifiedName()
     {
-        if ($package !== null) {
-            $package = trim($package, '.');
-        }
+        $args  = func_get_args();
+        $parts = array_filter($args);
+        $name  = implode('.', $parts);
 
-        if ($package === null && $parent !== null) {
-            return $parent;
-        }
-
-        if ($package !== null && $parent === null) {
-            return $package;
-        }
-
-        return $package . '.' . $parent;
+        return $name;
     }
 }
