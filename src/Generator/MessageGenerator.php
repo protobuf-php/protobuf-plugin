@@ -306,13 +306,7 @@ class MessageGenerator extends BaseGenerator
             'name'       => $methodName,
             'body'       => 'return $this->' . $fieldName . ';',
             'docblock'   => [
-                'shortDescription' => "Get unknown values",
-                'tags'             => [
-                    [
-                        'name'        => 'return',
-                        'description' => '\Protobuf\UnknownFieldSet',
-                    ]
-                ]
+                'shortDescription' => "{@inheritdoc}"
             ]
         ]);
 
@@ -340,13 +334,7 @@ class MessageGenerator extends BaseGenerator
             'name'       => 'extensions',
             'body'       => implode(PHP_EOL, $lines),
             'docblock'   => [
-                'shortDescription' => "{@inheritdoc}",
-                'tags'             => [
-                    [
-                        'name'        => 'return',
-                        'description' => '\Protobuf\Extension\ExtensionFieldMap',
-                    ]
-                ]
+                'shortDescription' => "{@inheritdoc}"
             ]
         ]);
     }

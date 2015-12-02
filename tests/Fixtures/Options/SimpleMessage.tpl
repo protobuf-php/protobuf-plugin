@@ -34,9 +34,7 @@ class SimpleMessage extends \Protobuf\AbstractMessage
     protected $extensions = null;
 
     /**
-     * Get unknown values
-     *
-     * @return \Protobuf\UnknownFieldSet
+     * {@inheritdoc}
      */
     public function unknownFieldSet()
     {
@@ -45,8 +43,6 @@ class SimpleMessage extends \Protobuf\AbstractMessage
 
     /**
      * {@inheritdoc}
-     *
-     * @return \Protobuf\Extension\ExtensionFieldMap
      */
     public function extensions()
     {

@@ -149,9 +149,7 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
     }
 
     /**
-     * Get unknown values
-     *
-     * @return \Protobuf\UnknownFieldSet
+     * {@inheritdoc}
      */
     public function unknownFieldSet()
     {
@@ -160,8 +158,6 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
 
     /**
      * {@inheritdoc}
-     *
-     * @return \Protobuf\Extension\ExtensionFieldMap
      */
     public function extensions()
     {
