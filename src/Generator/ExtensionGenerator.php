@@ -177,10 +177,16 @@ class ExtensionGenerator extends BaseGenerator
         foreach ($fields as $field) {
             $name  = $field->getName();
             $type  = $field->getTypeName();
-            $class = $type ? $this->getNamespace($type) : 'self';
-            $sttm  = '$registry->add(' . $class . '::' . $name. '());';
 
-            $lines[] = $sttm;
+            if ( ! $type) {
+                $lines[] = '$registry->add(self::' . $name . '());';
+
+                continue;
+            }
+
+            $ref     = $this->getEntity($type);
+            $class   = $ref->getNamespacedName();
+            $lines[] = '$registry->add(' . $class . '::' . $name. '());';
         }
 
         $body       = implode(PHP_EOL, $lines);

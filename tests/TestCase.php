@@ -136,6 +136,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     {
         $descriptor = new DescriptorProto();
         $enums      = isset($values['enums']) ? $values['enums'] : [];
+        $messages   = isset($values['messages']) ? $values['messages'] : [];
         $extensions = isset($values['extensions']) ? $values['extensions'] : [];
 
         $descriptor->setName($name);
@@ -178,6 +179,17 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             }
 
             $descriptor->addEnumType($enum);
+        }
+
+        foreach ($messages as $item) {
+            if (is_array($item)) {
+                $name   = $item['name'];
+                $fields = isset($item['fields']) ? $item['fields'] : [];
+                $values = isset($item['values']) ? $item['values'] : [];
+                $item   = $this->createDescriptorProto($name, $fields, $values);
+            }
+
+            $descriptor->addNestedType($item);
         }
 
         return $descriptor;

@@ -22,9 +22,10 @@ class ExtensionMethodBodyGenerator extends BaseGenerator
      */
     public function generateBody(Entity $entity, FieldDescriptorProto $field)
     {
-        $name     = $field->getName();
-        $tag      = $field->getNumber();
-        $extendee = $this->getNamespace($field->getExtendee());
+        $name      = $field->getName();
+        $tag       = $field->getNumber();
+        $extEntity = $this->getEntity($field->getExtendee());
+        $extendee  = $extEntity->getNamespacedName();
 
         $nameQuoted     = var_export($name, true);
         $extendeeQuoted = var_export($extendee, true);

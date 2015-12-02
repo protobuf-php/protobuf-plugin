@@ -117,8 +117,25 @@ CODE;
 
     public function testGenerateReadMessageStatement()
     {
-        $context = $this->createMessagesContext([
-            1  => ['phone', Field::TYPE_MESSAGE, Field::LABEL_REQUIRED, 'ProtobufCompiler.Proto.PhoneNumber']
+        return $this->createContext([
+            [
+                'name'    => 'simple.proto',
+                'package' => 'ProtobufCompilerTest.Protos',
+                'values'  => [
+                    'messages' => [
+                        [
+                            'name'   => 'Simple',
+                            'fields' => [
+                                1  => ['phone', Field::TYPE_MESSAGE, Field::LABEL_REQUIRED, 'ProtobufCompiler.Proto.PhoneNumber']
+                            ]
+                        ],
+                        [
+                            'name'   => 'PhoneNumber',
+                            'fields' => []
+                        ]
+                    ]
+                ]
+            ]
         ]);
 
         $generator = new ReadFieldStatementGenerator($context);
@@ -147,8 +164,25 @@ CODE;
 
     public function testGenerateReadMessageRepeatedStatement()
     {
-        $context = $this->createMessagesContext([
-            1  => ['files', Field::TYPE_MESSAGE, Field::LABEL_REPEATED, 'ProtobufCompiler.Proto.File']
+        $context = $this->createContext([
+            [
+                'name'    => 'simple.proto',
+                'package' => 'ProtobufCompilerTest.Protos',
+                'values'  => [
+                    'messages' => [
+                        [
+                            'name'   => 'Simple',
+                            'fields' => [
+                                1  => ['files', Field::TYPE_MESSAGE, Field::LABEL_REPEATED, 'ProtobufCompilerTest.Protos.File']
+                            ]
+                        ],
+                        [
+                            'name'   => 'File',
+                            'fields' => []
+                        ]
+                    ]
+                ]
+            ]
         ]);
 
         $generator = new ReadFieldStatementGenerator($context);
@@ -161,7 +195,7 @@ CODE;
 \Protobuf\WireFormat::assertWireType($wire, 11);
 
 $innerSize    = $reader->readVarint($stream);
-$innerMessage = new \ProtobufCompiler\Proto\File();
+$innerMessage = new \ProtobufCompilerTest\Protos\File();
 
 if ($this->files === null) {
     $this->files = new \Protobuf\MessageCollection();

@@ -69,10 +69,12 @@ class Context
      */
     public function getEntity($fqcn)
     {
-        if ( ! isset($this->entities[$fqcn])) {
-            throw new \LogicException("Unable to find class : $fqcn");
+        $class = trim($fqcn, '.');
+
+        if ( ! isset($this->entities[$class])) {
+            throw new \LogicException("Unable to find class : $class");
         }
 
-        return $this->entities[$fqcn];
+        return $this->entities[$class];
     }
 }

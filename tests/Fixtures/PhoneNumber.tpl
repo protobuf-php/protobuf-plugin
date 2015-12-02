@@ -27,7 +27,7 @@ namespace ProtobufCompilerTest\Protos;
  *       type=14,
  *       label=1,
  *       default="HOME",
- *       reference="ProtobufTest.Protos.Person.PhoneType"
+ *       reference="ProtobufCompilerTest.Protos.PhoneType"
  *     )
  *   },
  *   extensions={
@@ -57,7 +57,7 @@ class PhoneNumber extends \Protobuf\AbstractMessage
     /**
      * type optional enum = 2
      *
-     * @var \ProtobufTest\Protos\Person\PhoneType
+     * @var \ProtobufCompilerTest\Protos\PhoneType
      */
     protected $type = null;
 
@@ -66,7 +66,7 @@ class PhoneNumber extends \Protobuf\AbstractMessage
      */
     public function __construct()
     {
-        $this->type = \ProtobufTest\Protos\Person\PhoneType::HOME();
+        $this->type = \ProtobufCompilerTest\Protos\PhoneType::HOME();
     }
 
     /**
@@ -112,7 +112,7 @@ class PhoneNumber extends \Protobuf\AbstractMessage
     /**
      * Get 'type' value
      *
-     * @return \ProtobufTest\Protos\Person\PhoneType
+     * @return \ProtobufCompilerTest\Protos\PhoneType
      */
     public function getType()
     {
@@ -122,9 +122,9 @@ class PhoneNumber extends \Protobuf\AbstractMessage
     /**
      * Set 'type' value
      *
-     * @param \ProtobufTest\Protos\Person\PhoneType $value
+     * @param \ProtobufCompilerTest\Protos\PhoneType $value
      */
-    public function setType(\ProtobufTest\Protos\Person\PhoneType $value)
+    public function setType(\ProtobufCompilerTest\Protos\PhoneType $value)
     {
         return $this->type = $value;
     }
@@ -231,7 +231,7 @@ class PhoneNumber extends \Protobuf\AbstractMessage
             if ($tag === 2) {
                 \Protobuf\WireFormat::assertWireType($wire, 14);
 
-                $this->type = \ProtobufTest\Protos\Person\PhoneType::valueOf($reader->readVarint($stream));
+                $this->type = \ProtobufCompilerTest\Protos\PhoneType::valueOf($reader->readVarint($stream));
 
                 continue;
             }

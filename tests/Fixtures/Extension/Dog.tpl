@@ -20,7 +20,7 @@ namespace ProtobufCompilerTest\Protos\Extension;
  *       tag=1,
  *       type=5,
  *       label=1,
- *       reference="ProtobufTest.Protos.Extension.Dog"
+ *       reference="ProtobufCompilerTest.Protos.Extension.Dog"
  *     )
  *   },
  *   extensions={
@@ -29,8 +29,8 @@ namespace ProtobufCompilerTest\Protos\Extension;
  *       tag=101,
  *       type=11,
  *       label=1,
- *       reference="ProtobufTest.Protos.Extension.Dog",
- *       extendee="ProtobufTest.Protos.Extension.Animal"
+ *       reference="ProtobufCompilerTest.Protos.Extension.Dog",
+ *       extendee="ProtobufCompilerTest.Protos.Extension.Animal"
  *     )
  *   }
  * )
@@ -81,7 +81,7 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
             \Protobuf\WireFormat::assertWireType($wire, 11);
 
             $innerSize    = $reader->readVarint($stream);
-            $innerMessage = new \ProtobufTest\Protos\Extension\Dog();
+            $innerMessage = new \ProtobufCompilerTest\Protos\Extension\Dog();
 
             $value = $innerMessage;
 
@@ -115,7 +115,7 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
             return $size;
         };
 
-        return self::$animal = new \Protobuf\Extension\ExtensionField('\\ProtobufTest\\Protos\\Extension\\Animal', 'animal', 101, $readCallback, $writeCallback, $sizeCallback);
+        return self::$animal = new \Protobuf\Extension\ExtensionField('\\ProtobufCompilerTest\\Protos\\Extension\\Animal', 'animal', 101, $readCallback, $writeCallback, $sizeCallback);
     }
 
     /**

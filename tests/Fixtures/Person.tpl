@@ -38,7 +38,7 @@ namespace ProtobufCompilerTest\Protos;
  *       tag=4,
  *       type=11,
  *       label=3,
- *       reference="ProtobufTest.Protos.Person.PhoneNumber"
+ *       reference="ProtobufCompilerTest.Protos.PhoneNumber"
  *     )
  *   },
  *   extensions={
@@ -82,7 +82,7 @@ class Person extends \Protobuf\AbstractMessage
     /**
      * phone repeated message = 4
      *
-     * @var \Protobuf\Collection<\ProtobufTest\Protos\Person\PhoneNumber>
+     * @var \Protobuf\Collection<\ProtobufCompilerTest\Protos\PhoneNumber>
      */
     protected $phone = null;
 
@@ -189,7 +189,7 @@ class Person extends \Protobuf\AbstractMessage
     /**
      * Get 'phone' value
      *
-     * @return \Protobuf\Collection<\ProtobufTest\Protos\Person\PhoneNumber>
+     * @return \Protobuf\Collection<\ProtobufCompilerTest\Protos\PhoneNumber>
      */
     public function getPhoneList()
     {
@@ -199,7 +199,7 @@ class Person extends \Protobuf\AbstractMessage
     /**
      * Set 'phone' value
      *
-     * @param \Protobuf\Collection<\ProtobufTest\Protos\Person\PhoneNumber> $value
+     * @param \Protobuf\Collection<\ProtobufCompilerTest\Protos\PhoneNumber> $value
      */
     public function setPhoneList(\Protobuf\Collection $value)
     {
@@ -209,9 +209,9 @@ class Person extends \Protobuf\AbstractMessage
     /**
      * Add a new element to 'phone'
      *
-     * @param \ProtobufTest\Protos\Person\PhoneNumber $value
+     * @param \ProtobufCompilerTest\Protos\PhoneNumber $value
      */
-    public function addPhone(\ProtobufTest\Protos\Person\PhoneNumber $value)
+    public function addPhone(\ProtobufCompilerTest\Protos\PhoneNumber $value)
     {
         if ( $this->phone === null) {
             $this->phone = new \Protobuf\MessageCollection();
@@ -354,7 +354,7 @@ class Person extends \Protobuf\AbstractMessage
                 \Protobuf\WireFormat::assertWireType($wire, 11);
 
                 $innerSize    = $reader->readVarint($stream);
-                $innerMessage = new \ProtobufTest\Protos\Person\PhoneNumber();
+                $innerMessage = new \ProtobufCompilerTest\Protos\PhoneNumber();
 
                 if ($this->phone === null) {
                     $this->phone = new \Protobuf\MessageCollection();

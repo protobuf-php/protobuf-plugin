@@ -69,8 +69,9 @@ class ReadFieldStatementGenerator extends BaseGenerator
         $breakSttm = $this->getBreakStatement($variable);
 
         if ($field->hasTypeName()) {
-            $typeName  = $field->getTypeName();
-            $reference = $this->getNamespace($typeName);
+            $typeName   = $field->getTypeName();
+            $typeEntity = $this->getEntity($typeName);
+            $reference  = $typeEntity->getNamespacedName();
         }
 
         if ( ! $isPack) {

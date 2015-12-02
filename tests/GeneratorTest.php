@@ -73,8 +73,12 @@ class GeneratorTest extends TestCase
                                 'name'   => 'PhoneNumber',
                                 'fields' => [
                                     1  => ['number', Field::TYPE_STRING, Field::LABEL_REQUIRED],
-                                    2  => ['type', Field::TYPE_ENUM, Field::LABEL_OPTIONAL, '.ProtobufTest.Protos.Person.PhoneType', ['default' => 'HOME']],
+                                    2  => ['type', Field::TYPE_ENUM, Field::LABEL_OPTIONAL, '.ProtobufCompilerTest.Protos.PhoneType', ['default' => 'HOME']],
                                 ]
+                            ],
+                            [
+                                'name'   => 'PhoneType',
+                                'fields' => []
                             ]
                         ]
                     ]
@@ -96,8 +100,12 @@ class GeneratorTest extends TestCase
                                     1  => ['name', Field::TYPE_STRING, Field::LABEL_REQUIRED],
                                     2  => ['id', Field::TYPE_INT32, Field::LABEL_REQUIRED],
                                     3  => ['email', Field::TYPE_STRING, Field::LABEL_OPTIONAL],
-                                    4  => ['phone', Field::TYPE_MESSAGE, Field::LABEL_REPEATED, '.ProtobufTest.Protos.Person.PhoneNumber'],
+                                    4  => ['phone', Field::TYPE_MESSAGE, Field::LABEL_REPEATED, '.ProtobufCompilerTest.Protos.PhoneNumber'],
                                 ]
+                            ],
+                            [
+                                'name'   => 'PhoneNumber',
+                                'fields' => []
                             ]
                         ]
                     ]
@@ -143,8 +151,8 @@ class GeneratorTest extends TestCase
                     'package' => 'ProtobufCompilerTest.Protos.Extension',
                     'values'  => [
                         'extensions' => [
-                            200  => ['habitat', Field::TYPE_STRING, Field::LABEL_OPTIONAL, '.ProtobufTest.Protos.Extension.Animal'],
-                            201  => ['verbose', Field::TYPE_BOOL, Field::LABEL_OPTIONAL, '.ProtobufTest.Protos.Extension.Command']
+                            200  => ['habitat', Field::TYPE_STRING, Field::LABEL_OPTIONAL, '.ProtobufCompilerTest.Protos.Extension.Animal'],
+                            201  => ['verbose', Field::TYPE_BOOL, Field::LABEL_OPTIONAL, '.ProtobufCompilerTest.Protos.Extension.Command']
                         ],
                         'messages' => [
                             [
@@ -152,9 +160,17 @@ class GeneratorTest extends TestCase
                                 'fields' => [],
                                 'values' => [
                                     'extensions' => [
-                                        101  => ['animal',  Field::TYPE_MESSAGE, Field::LABEL_OPTIONAL, '.ProtobufTest.Protos.Extension.Animal', '.ProtobufTest.Protos.Extension.Dog']
+                                        101  => ['animal',  Field::TYPE_MESSAGE, Field::LABEL_OPTIONAL, '.ProtobufCompilerTest.Protos.Extension.Animal', '.ProtobufCompilerTest.Protos.Extension.Dog']
                                     ]
                                 ]
+                            ],
+                            [
+                                'name'   => 'Command',
+                                'fields' => []
+                            ],
+                            [
+                                'name'   => 'Animal',
+                                'fields' => []
                             ]
                         ]
                     ]
@@ -173,13 +189,17 @@ class GeneratorTest extends TestCase
                             [
                                 'name'   => 'Dog',
                                 'fields' => [
-                                    1  => ['bones_buried', Field::TYPE_INT32, Field::LABEL_OPTIONAL, '.ProtobufTest.Protos.Extension.Dog'],
+                                    1  => ['bones_buried', Field::TYPE_INT32, Field::LABEL_OPTIONAL, '.ProtobufCompilerTest.Protos.Extension.Dog'],
                                 ],
                                 'values' => [
                                     'extensions' => [
-                                        101  => ['animal',  Field::TYPE_MESSAGE, Field::LABEL_OPTIONAL, '.ProtobufTest.Protos.Extension.Animal', '.ProtobufTest.Protos.Extension.Dog']
+                                        101  => ['animal',  Field::TYPE_MESSAGE, Field::LABEL_OPTIONAL, '.ProtobufCompilerTest.Protos.Extension.Animal', '.ProtobufCompilerTest.Protos.Extension.Dog']
                                     ]
                                 ]
+                            ],
+                            [
+                                'name'   => 'Animal',
+                                'fields' => []
                             ]
                         ]
                     ]
@@ -208,7 +228,7 @@ class GeneratorTest extends TestCase
                     ]
                 ]
             ],
-/*
+
             // Inner Enum using php.package
             [
                 'Options/ParentMessage/InnerMessage/InnerMessageEnum.tpl',
@@ -249,7 +269,7 @@ class GeneratorTest extends TestCase
                     ]
                 ]
             ],
-*/
+
         ];
     }
 
@@ -289,7 +309,17 @@ class GeneratorTest extends TestCase
                 'name'    => 'service.proto',
                 'package' => 'ProtobufCompilerTest.Protos.Service',
                 'values'  => [
-                    'services' => [$serviceDesc]
+                    'services' => [$serviceDesc],
+                    'messages' => [
+                        [
+                            'name'   => 'SearchRequest',
+                            'fields' => []
+                        ],
+                        [
+                            'name'   => 'SearchResponse',
+                            'fields' => []
+                        ]
+                    ]
                 ]
             ]
         ]);

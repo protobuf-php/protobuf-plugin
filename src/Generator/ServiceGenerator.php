@@ -64,27 +64,29 @@ class ServiceGenerator extends BaseGenerator
      */
     protected function generateMethod(Entity $entity, MethodDescriptorProto $method)
     {
-        $methodName = $method->getName();
-        $descriptor = $entity->getDescriptor();
-        $inputType  = $this->getNamespace($method->getInputType());
-        $outputType = $this->getNamespace($method->getOutputType());
-        $method     = MethodGenerator::fromArray([
+        $methodName  = $method->getName();
+        $descriptor  = $entity->getDescriptor();
+        $input       = $this->getEntity($method->getInputType());
+        $output      = $this->getEntity($method->getOutputType());
+        $inputClass  = $input->getNamespacedName();
+        $outputClass = $output->getNamespacedName();
+        $method      = MethodGenerator::fromArray([
             'name'       => $methodName,
             'parameters' => [
                 [
                     'name'   => 'input',
-                    'type'   => $inputType
+                    'type'   => $inputClass
                 ]
             ],
             'docblock' => [
                 'tags'             => [
                     [
                         'name'        => 'param',
-                        'description' =>  $inputType . ' $input'
+                        'description' =>  $inputClass . ' $input'
                     ],
                     [
                         'name'        => 'return',
-                        'description' =>  $outputType
+                        'description' =>  $outputClass
                     ]
                 ]
             ]

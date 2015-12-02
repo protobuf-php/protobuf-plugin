@@ -30,16 +30,6 @@ class BaseGenerator
     protected $context;
 
     /**
-     * @var array
-     */
-    protected $scalarTypes = [
-        'string' => true,
-        'float'  => true,
-        'bool'   => true,
-        'int'    => true
-    ];
-
-    /**
      * @param \Protobuf\Compiler\Context $context
      */
     public function __construct(Context $context)
@@ -48,16 +38,28 @@ class BaseGenerator
     }
 
     /**
+     * Convert a Protobuf package to a php namespace
+     *
+     * @param string $namespace
+     *
+     * @return string
+     */
+    private function getNamespace($namespace)
+    {
+        $name = str_replace('.', '\\', $namespace);
+        $fqcn = '\\' . trim($name, '\\');
+
+        return $fqcn;
+    }
+
+    /**
      * @param string $class
      *
-     * @return \Protobuf\Message
+     * @return \Protobuf\Compiler\Entity
      */
-    protected function getDescriptor($class)
+    protected function getEntity($class)
     {
-        $entity     = $this->context->getEntity($class);
-        $descriptor = $entity->getDescriptor();
-
-        return $descriptor;
+        return $this->context->getEntity($class);
     }
 
     /**
@@ -117,11 +119,7 @@ class BaseGenerator
         if ($label === Label::LABEL_REPEATED()) {
             return '\Protobuf\Collection';
         }
-/*
-        if (isset($this->scalarTypes[$type])) {
-            return null;
-        }
-*/
+
         return $type;
     }
 
@@ -179,21 +177,6 @@ class BaseGenerator
         }
 
         return $method;
-    }
-
-    /**
-     * Convert a Protobuf package to a php namespace
-     *
-     * @param string $namespace
-     *
-     * @return string
-     */
-    protected function getNamespace($namespace)
-    {
-        $name = str_replace('.', '\\', $namespace);
-        $fqcn = '\\' . trim($name, '\\');
-
-        return $fqcn;
     }
 
     /**

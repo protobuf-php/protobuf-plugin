@@ -47,10 +47,9 @@ class EnumGenerator extends BaseGenerator
      */
     protected function generateProperties(Entity $entity)
     {
-        $properties = [];
         $descriptor = $entity->getDescriptor();
         $class      = $entity->getNamespacedName();
-        $constants  = $this->generateConstants($entity);
+        $properties = $this->generateConstants($entity);
         $values     = $descriptor->getValueList() ?: [];
 
         foreach ($values as $value) {
@@ -69,7 +68,11 @@ class EnumGenerator extends BaseGenerator
             ]);
         }
 
-        return array_merge($constants, $properties);
+        foreach ($properties as $value) {
+            $value->getDocblock()->setWordWrap(false);
+        }
+
+        return $properties;
     }
 
     /**
@@ -141,7 +144,7 @@ class EnumGenerator extends BaseGenerator
         $body[] = null;
         $body[] = 'return self::$' . $name . ' = new self(' . $args . ');';
 
-        return MethodGenerator::fromArray([
+        $method = MethodGenerator::fromArray([
             'static'     => true,
             'name'       => $name,
             'body'       => implode(PHP_EOL, $body),
@@ -154,6 +157,10 @@ class EnumGenerator extends BaseGenerator
                 ]
             ]
         ]);
+
+        $method->getDocblock()->setWordWrap(false);
+
+        return $method;
     }
 
     /**
@@ -180,7 +187,7 @@ class EnumGenerator extends BaseGenerator
         $body[] = '    default: return null;';
         $body[] = '}';
 
-        return MethodGenerator::fromArray([
+        $method = MethodGenerator::fromArray([
             'static'     => true,
             'name'       => 'valueOf',
             'body'       => implode(PHP_EOL, $body),
@@ -203,5 +210,9 @@ class EnumGenerator extends BaseGenerator
                 ]
             ]
         ]);
+
+        $method->getDocblock()->setWordWrap(false);
+
+        return $method;
     }
 }
