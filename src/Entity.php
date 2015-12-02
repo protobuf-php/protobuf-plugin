@@ -232,6 +232,10 @@ class Entity
         $parts = array_filter($args);
         $name  = implode('.', $parts);
 
+        if (empty($parts)) {
+            return null;
+        }
+
         return $name;
     }
 }

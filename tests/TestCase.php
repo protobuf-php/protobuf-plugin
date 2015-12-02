@@ -14,6 +14,7 @@ use google\protobuf\DescriptorProto;
 use google\protobuf\EnumDescriptorProto;
 use google\protobuf\FileDescriptorProto;
 use google\protobuf\FieldDescriptorProto;
+use google\protobuf\ServiceDescriptorProto;
 use google\protobuf\EnumValueDescriptorProto;
 use google\protobuf\compiler\CodeGeneratorRequest;
 
@@ -136,6 +137,21 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         $field->setNumber($number);
 
         return $field;
+    }
+
+    /**
+     * @param string $name
+     * @param array  $values
+     *
+     * @return \google\protobuf\ServiceDescriptorProto
+     */
+    protected function createServiceDescriptorProto($name, array $values = [])
+    {
+        $descriptor = new ServiceDescriptorProto();
+
+        $descriptor->setName($name);
+
+        return $descriptor;
     }
 
     /**
@@ -288,6 +304,12 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         }
 
         foreach ($services as $item) {
+            if (is_array($item)) {
+                $name   = $item['name'];
+                $values = isset($item['values']) ? $item['values'] : [];
+                $item   = $this->createServiceDescriptorProto($name, $values);
+            }
+
             $descriptor->addService($item);
         }
 

@@ -33,25 +33,6 @@ class EntityBuilder
     /**
      * @return array
      */
-    public function getFileToGenerateMap()
-    {
-        $map  = [];
-        $list = $this->request->getFileToGenerateList();
-
-        if ($list === null) {
-            return $map;
-        }
-
-        foreach ($list as $fileName) {
-            $map[$fileName] = $fileName;
-        }
-
-        return $map;
-    }
-
-    /**
-     * @return array
-     */
     public function buildEntities()
     {
         $result      = [];
@@ -76,6 +57,25 @@ class EntityBuilder
         }
 
         return $result;
+    }
+
+    /**
+     * @return array
+     */
+    protected function getFileToGenerateMap()
+    {
+        $map  = [];
+        $list = $this->request->getFileToGenerateList();
+
+        if ($list === null) {
+            return $map;
+        }
+
+        foreach ($list as $fileName) {
+            $map[$fileName] = $fileName;
+        }
+
+        return $map;
     }
 
     /**
