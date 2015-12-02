@@ -2,9 +2,12 @@
 
 namespace ProtobufCompilerTest\Generator;
 
-use Protobuf\Compiler\Generator\BaseGenerator;
 use google\protobuf\FieldDescriptorProto;
 use google\protobuf\DescriptorProto;
+
+use Protobuf\Compiler\Generator\BaseGenerator;
+use Protobuf\Compiler\Entity;
+
 use ProtobufCompilerTest\TestCase;
 
 class BaseGeneratorTest extends TestCase
@@ -30,14 +33,24 @@ class BaseGeneratorTest extends TestCase
 
     public function testGetDoctype()
     {
-        $field = new FieldDescriptorProto();
-        $type  = FieldDescriptorProto\Type::TYPE_ENUM();
-        $ref   = 'Reference';
+        $entity = $this->getMock(Entity::CLASS, [], [], '', false);
+        $type   = FieldDescriptorProto\Type::TYPE_ENUM();
+        $field  = new FieldDescriptorProto();
+        $ref    = 'Reference';
+
+        $this->context->expects($this->once())
+            ->method('getEntity')
+            ->willReturn($entity)
+            ->with($this->equalTo($ref));
+
+        $entity->expects($this->once())
+            ->method('getNamespacedName')
+            ->willReturn('\\Reference');
 
         $field->setType($type);
         $field->setTypeName($ref);
 
-        $expected = '\\' . $ref;
+        $expected = '\\Reference';
         $actual   = $this->invokeMethod($this->generator, 'getDoctype', [$field]);
 
         $this->assertEquals($expected, $actual);
@@ -45,16 +58,26 @@ class BaseGeneratorTest extends TestCase
 
     public function testGetDefaultFieldValueEnum()
     {
-        $field   = new FieldDescriptorProto();
+        $entity  = $this->getMock(Entity::CLASS, [], [], '', false);
         $type    = FieldDescriptorProto\Type::TYPE_ENUM();
+        $field   = new FieldDescriptorProto();
         $ref     = 'Reference';
         $default = 'CONST';
+
+        $this->context->expects($this->once())
+            ->method('getEntity')
+            ->willReturn($entity)
+            ->with($this->equalTo($ref));
+
+        $entity->expects($this->once())
+            ->method('getNamespacedName')
+            ->willReturn('\\Reference');
 
         $field->setType($type);
         $field->setTypeName($ref);
         $field->setDefaultValue($default);
 
-        $expected = '\\' . $ref . '::' . $default . '()';
+        $expected = '\\Reference::CONST()';
         $actual   = $this->invokeMethod($this->generator, 'getDefaultFieldValue', [$field]);
 
         $this->assertEquals($expected, $actual);
@@ -77,8 +100,8 @@ class BaseGeneratorTest extends TestCase
 
     public function testGetDefaultFieldValueInt32()
     {
-        $field   = new FieldDescriptorProto();
         $type    = FieldDescriptorProto\Type::TYPE_INT32();
+        $field   = new FieldDescriptorProto();
         $default = 12345;
 
         $field->setType($type);
@@ -92,14 +115,24 @@ class BaseGeneratorTest extends TestCase
 
     public function testGetTypeHintMessage()
     {
-        $field = new FieldDescriptorProto();
-        $label = FieldDescriptorProto\Label::LABEL_REQUIRED();
-        $type  = FieldDescriptorProto\Type::TYPE_MESSAGE();
-        $ref   = 'Package.Reference';
+        $entity = $this->getMock(Entity::CLASS, [], [], '', false);
+        $label  = FieldDescriptorProto\Label::LABEL_REQUIRED();
+        $type   = FieldDescriptorProto\Type::TYPE_MESSAGE();
+        $field  = new FieldDescriptorProto();
+        $ref    = 'Package.Reference';
 
         $field->setType($type);
         $field->setLabel($label);
         $field->setTypeName($ref);
+
+        $this->context->expects($this->once())
+            ->method('getEntity')
+            ->willReturn($entity)
+            ->with($this->equalTo($ref));
+
+        $entity->expects($this->once())
+            ->method('getNamespacedName')
+            ->willReturn('\\Package\\Reference');
 
         $expected = '\Package\Reference';
         $actual   = $this->invokeMethod($this->generator, 'getTypeHint', [$field]);
@@ -109,14 +142,24 @@ class BaseGeneratorTest extends TestCase
 
     public function testGetTypeHintMessageRepeated()
     {
-        $field = new FieldDescriptorProto();
-        $type  = FieldDescriptorProto\Type::TYPE_MESSAGE();
-        $label = FieldDescriptorProto\Label::LABEL_REPEATED();
-        $ref   = 'Package.Reference';
+        $entity = $this->getMock(Entity::CLASS, [], [], '', false);
+        $label  = FieldDescriptorProto\Label::LABEL_REPEATED();
+        $type   = FieldDescriptorProto\Type::TYPE_MESSAGE();
+        $field  = new FieldDescriptorProto();
+        $ref    = 'Package.Reference';
 
         $field->setType($type);
         $field->setLabel($label);
         $field->setTypeName($ref);
+
+        $this->context->expects($this->once())
+            ->method('getEntity')
+            ->willReturn($entity)
+            ->with($this->equalTo($ref));
+
+        $entity->expects($this->once())
+            ->method('getNamespacedName')
+            ->willReturn('\\Package\\Reference');
 
         $expected = '\Protobuf\Collection';
         $actual   = $this->invokeMethod($this->generator, 'getTypeHint', [$field]);

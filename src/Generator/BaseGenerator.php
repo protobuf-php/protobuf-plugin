@@ -38,21 +38,6 @@ class BaseGenerator
     }
 
     /**
-     * Convert a Protobuf package to a php namespace
-     *
-     * @param string $namespace
-     *
-     * @return string
-     */
-    private function getNamespace($namespace)
-    {
-        $name = str_replace('.', '\\', $namespace);
-        $fqcn = '\\' . trim($name, '\\');
-
-        return $fqcn;
-    }
-
-    /**
      * @param string $class
      *
      * @return \Protobuf\Compiler\Entity
@@ -77,7 +62,10 @@ class BaseGenerator
         ];
 
         if (isset($refTypes[$fieldType])) {
-            return $this->getNamespace($field->getTypeName());
+            $typeName  = $field->getTypeName();
+            $refEntity = $this->getEntity($typeName);
+
+            return $refEntity->getNamespacedName();
         }
 
         return $phpType ?: 'mixed';
@@ -99,7 +87,9 @@ class BaseGenerator
         }
 
         if ($label === Label::LABEL_REPEATED() && $typeName !== null) {
-            $reference = $this->getNamespace($typeName);
+            $typeName  = $field->getTypeName();
+            $refEntity = $this->getEntity($typeName);
+            $reference = $refEntity->getNamespacedName();
             $type      = $type . sprintf('<%s>', $reference);
         }
 
@@ -190,8 +180,10 @@ class BaseGenerator
         $value = $field->getDefaultValue();
 
         if ($type === Type::TYPE_ENUM()) {
-            $ref   = $field->getTypeName();
-            $const = $this->getNamespace($ref) . '::' . $value . '()';
+            $typeName  = $field->getTypeName();
+            $refEntity = $this->getEntity($typeName);
+            $reference = $refEntity->getNamespacedName();
+            $const     = $reference . '::' . $value . '()';
 
             return $const;
         }
