@@ -136,7 +136,7 @@ class WriteFieldStatementGenerator extends BaseGenerator
             Type::TYPE_SINT64_VALUE   => '$writer->writeZigzag64(%s, %s)',
             Type::TYPE_BOOL_VALUE     => '$writer->writeBool(%s, %s)',
             Type::TYPE_STRING_VALUE   => '$writer->writeString(%s, %s)',
-            Type::TYPE_BYTES_VALUE    => '$writer->writeString(%s, %s)',
+            Type::TYPE_BYTES_VALUE    => '$writer->writeByteStream(%s, %s)',
         ];
 
         if (isset($mapping[$type])) {

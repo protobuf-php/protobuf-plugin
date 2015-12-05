@@ -182,7 +182,7 @@ class ReadFieldStatementGenerator extends BaseGenerator
             Type::TYPE_SINT64_VALUE   => '$reader->readZigzag($stream)',
             Type::TYPE_BOOL_VALUE     => '$reader->readBool($stream)',
             Type::TYPE_STRING_VALUE   => '$reader->readString($stream)',
-            Type::TYPE_BYTES_VALUE    => '$reader->readBytes($stream)',
+            Type::TYPE_BYTES_VALUE    => '$reader->readByteStream($stream)',
         ];
 
         if (isset($mapping[$type])) {

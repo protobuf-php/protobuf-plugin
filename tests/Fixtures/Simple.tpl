@@ -189,7 +189,7 @@ class Simple extends \Protobuf\AbstractMessage
     /**
      * bytes optional bytes = 12
      *
-     * @var string
+     * @var \Protobuf\Stream
      */
     protected $bytes = null;
 
@@ -511,7 +511,7 @@ class Simple extends \Protobuf\AbstractMessage
     /**
      * Get 'bytes' value
      *
-     * @return string
+     * @return \Protobuf\Stream
      */
     public function getBytes()
     {
@@ -521,9 +521,9 @@ class Simple extends \Protobuf\AbstractMessage
     /**
      * Set 'bytes' value
      *
-     * @param string $value
+     * @param \Protobuf\Stream $value
      */
-    public function setBytes($value)
+    public function setBytes(\Protobuf\Stream $value)
     {
         return $this->bytes = $value;
     }
@@ -753,7 +753,7 @@ class Simple extends \Protobuf\AbstractMessage
 
         if ($this->bytes !== null) {
             $size += 1;
-            $size += $calculator->computeStringSize($this->bytes);
+            $size += $calculator->computeByteStreamSize($this->bytes);
         }
 
         if ($this->uint32 !== null) {
@@ -905,7 +905,7 @@ class Simple extends \Protobuf\AbstractMessage
             if ($tag === 12) {
                 \Protobuf\WireFormat::assertWireType($wire, 12);
 
-                $this->bytes = $reader->readBytes($stream);
+                $this->bytes = $reader->readByteStream($stream);
 
                 continue;
             }
@@ -1027,7 +1027,7 @@ class Simple extends \Protobuf\AbstractMessage
 
         if ($this->bytes !== null) {
             $writer->writeVarint($stream, 98);
-            $writer->writeString($stream, $this->bytes);
+            $writer->writeByteStream($stream, $this->bytes);
         }
 
         if ($this->uint32 !== null) {

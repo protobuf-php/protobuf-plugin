@@ -294,9 +294,9 @@ class BaseGenerator
             Type::TYPE_UINT32_VALUE => 'computeVarintSize',
             Type::TYPE_ENUM_VALUE   => 'computeVarintSize',
             Type::TYPE_STRING_VALUE => 'computeStringSize',
-            Type::TYPE_BYTES_VALUE  => 'computeStringSize',
             Type::TYPE_SINT32_VALUE => 'computeZigzag32Size',
             Type::TYPE_SINT64_VALUE => 'computeZigzag64Size',
+            Type::TYPE_BYTES_VALUE  => 'computeByteStreamSize',
         ];
 
         if (isset($dynamicMapping[$type])) {
