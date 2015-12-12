@@ -2,14 +2,14 @@
 
 namespace ProtobufCompilerTest\Generator\Message;
 
-use Protobuf\Compiler\Generator\Message\SerializedSizeMethodBodyGenerator;
+use Protobuf\Compiler\Generator\Message\SerializedSizeGenerator;
 use google\protobuf\FieldDescriptorProto;
 use google\protobuf\DescriptorProto;
 use ProtobufCompilerTest\TestCase;
 use google\protobuf\FieldOptions;
 use Protobuf\Field;
 
-class SerializedSizeMethodBodyGeneratorTest extends TestCase
+class SerializedSizeGeneratorTest extends TestCase
 {
     public function testGenerateBody()
     {
@@ -31,11 +31,11 @@ class SerializedSizeMethodBodyGeneratorTest extends TestCase
         ]);
 
         $entity    = $context->getEntity('ProtobufCompilerTest.Protos.Simple');
-        $generator = new SerializedSizeMethodBodyGenerator($context);
+        $generator = new SerializedSizeGenerator($context);
         $descritor = $entity->getDescriptor();
         $field     = $descritor->getFieldList()[0];
 
-        $actual   = $generator->generateBody($entity);
+        $actual   = $this->invokeMethod($generator, 'generateBody', [$entity]);
         $expected = <<<'CODE'
 $calculator = $context->getSizeCalculator();
 $size       = 0;

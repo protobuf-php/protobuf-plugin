@@ -16,10 +16,10 @@ use Zend\Code\Generator\InterfaceGenerator;
  *
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
  */
-class ServiceGenerator extends BaseGenerator
+class ServiceGenerator extends BaseGenerator implements EntityVisitor
 {
     /**
-     * @param \Protobuf\Compiler\Entity $entity
+     * {@inheritdoc}
      */
     public function visit(Entity $entity)
     {

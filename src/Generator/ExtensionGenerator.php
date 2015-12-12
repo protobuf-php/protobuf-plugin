@@ -11,6 +11,7 @@ use Zend\Code\Generator\PropertyGenerator;
 use Zend\Code\Generator\ParameterGenerator;
 
 use Protobuf\Compiler\Entity;
+use Protobuf\Compiler\Generator\Message\ExtensionsGenerator;
 use Protobuf\Compiler\Generator\Message\ReadFieldStatementGenerator;
 use Protobuf\Compiler\Generator\Message\ExtensionMethodBodyGenerator;
 use Protobuf\Compiler\Generator\Message\WriteFieldStatementGenerator;
@@ -21,10 +22,10 @@ use Protobuf\Compiler\Generator\Message\SerializedSizeFieldStatementGenerator;
  *
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
  */
-class ExtensionGenerator extends BaseGenerator
+class ExtensionGenerator extends BaseGenerator implements EntityVisitor
 {
     /**
-     * @param \Protobuf\Compiler\Entity $entity
+     * {@inheritdoc}
      */
     public function visit(Entity $entity)
     {
@@ -125,7 +126,7 @@ class ExtensionGenerator extends BaseGenerator
         $fieldName  = $field->getName();
         $descriptor = $entity->getDescriptor();
         $methodName = $this->getCamelizedName($field);
-        $bodyGen    = new ExtensionMethodBodyGenerator($this->context);
+        $bodyGen    = new ExtensionsGenerator($this->context);
         $body       = implode(PHP_EOL, $bodyGen->generateBody($entity, $field));
         $method     = MethodGenerator::fromArray([
             'static'     => true,

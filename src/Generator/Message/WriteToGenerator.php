@@ -2,28 +2,66 @@
 
 namespace Protobuf\Compiler\Generator\Message;
 
-use Protobuf\WireFormat;
-use Protobuf\Compiler\Entity;
-use Protobuf\Compiler\Generator\BaseGenerator;
-
 use google\protobuf\DescriptorProto;
 use google\protobuf\FieldDescriptorProto;
 use google\protobuf\FieldDescriptorProto\Type;
 use google\protobuf\FieldDescriptorProto\Label;
+
+use Zend\Code\Generator\MethodGenerator;
+use Zend\Code\Generator\GeneratorInterface;
+
+use Protobuf\WireFormat;
+use Protobuf\Compiler\Entity;
+use Protobuf\Compiler\Generator\BaseGenerator;
+use Protobuf\Compiler\Generator\GeneratorVisitor;
 
 /**
  * Message writeTo Body Generator
  *
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
  */
-class WriteToMethodBodyGenerator extends BaseGenerator
+class WriteToGenerator extends BaseGenerator implements GeneratorVisitor
 {
+    /**
+     * {@inheritdoc}
+     */
+    public function visit(Entity $entity, GeneratorInterface $class)
+    {
+        $class->addMethodFromGenerator($this->generateWriteToMethod($entity));
+    }
+
+    /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
+     * @return \Zend\Code\Generator\GeneratorInterface
+     */
+    protected function generateWriteToMethod(Entity $entity)
+    {
+        $lines   = $this->generateBody($entity);
+        $body    = implode(PHP_EOL, $lines);
+        $method  = MethodGenerator::fromArray([
+            'name'       => 'writeTo',
+            'body'       => $body,
+            'parameters' => [
+                [
+                    'name' => 'context',
+                    'type' => '\Protobuf\WriteContext',
+                ]
+            ],
+            'docblock'   => [
+                'shortDescription' => "{@inheritdoc}"
+            ]
+        ]);
+
+        return $method;
+    }
+
     /**
      * @param \Protobuf\Compiler\Entity $entity
      *
      * @return string[]
      */
-    public function generateBody(Entity $entity)
+    protected function generateBody(Entity $entity)
     {
         $descriptor = $entity->getDescriptor();
         $fields     = $descriptor->getFieldList() ?: [];
@@ -61,7 +99,7 @@ class WriteToMethodBodyGenerator extends BaseGenerator
      *
      * @return string[]
      */
-    public function generateRequiredFieldException(Entity $entity, FieldDescriptorProto $field)
+    protected function generateRequiredFieldException(Entity $entity, FieldDescriptorProto $field)
     {
         $name       = $field->getName();
         $label      = $field->getLabel();
@@ -90,7 +128,7 @@ class WriteToMethodBodyGenerator extends BaseGenerator
      *
      * @return string[]
      */
-    public function generateFieldCondition(Entity $entity, FieldDescriptorProto $field)
+    protected function generateFieldCondition(Entity $entity, FieldDescriptorProto $field)
     {
         $body      = [];
         $fieldName = $field->getName();
@@ -111,7 +149,7 @@ class WriteToMethodBodyGenerator extends BaseGenerator
      *
      * @return string[]
      */
-    public function generateFieldWriteStatement(Entity $entity, FieldDescriptorProto $field)
+    protected function generateFieldWriteStatement(Entity $entity, FieldDescriptorProto $field)
     {
         $generator = new WriteFieldStatementGenerator($this->context);
         $statement = $generator->generateFieldWriteStatement($entity, $field);

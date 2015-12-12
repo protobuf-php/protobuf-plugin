@@ -681,14 +681,6 @@ class Simple extends \Protobuf\AbstractMessage
     /**
      * {@inheritdoc}
      */
-    public function unknownFieldSet()
-    {
-        return $this->unknownFieldSet;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function extensions()
     {
         if ( $this->extensions !== null) {
@@ -701,91 +693,23 @@ class Simple extends \Protobuf\AbstractMessage
     /**
      * {@inheritdoc}
      */
-    public function serializedSize(\Protobuf\ComputeSizeContext $context)
+    public function unknownFieldSet()
     {
-        $calculator = $context->getSizeCalculator();
-        $size       = 0;
+        return $this->unknownFieldSet;
+    }
 
-        if ($this->double !== null) {
-            $size += 1;
-            $size += 8;
-        }
+    /**
+     * {@inheritdoc}
+     */
+    public static function fromStream($stream, \Protobuf\Configuration $configuration = null)
+    {
+        $config  = $configuration ?: \Protobuf\Configuration::getInstance();
+        $context = $config->createReadContext($stream);
+        $message = new self();
 
-        if ($this->float !== null) {
-            $size += 1;
-            $size += 4;
-        }
+        $message->readFrom($context);
 
-        if ($this->int64 !== null) {
-            $size += 1;
-            $size += $calculator->computeVarintSize($this->int64);
-        }
-
-        if ($this->uint64 !== null) {
-            $size += 1;
-            $size += $calculator->computeVarintSize($this->uint64);
-        }
-
-        if ($this->int32 !== null) {
-            $size += 1;
-            $size += $calculator->computeVarintSize($this->int32);
-        }
-
-        if ($this->fixed64 !== null) {
-            $size += 1;
-            $size += 8;
-        }
-
-        if ($this->fixed32 !== null) {
-            $size += 1;
-            $size += 4;
-        }
-
-        if ($this->bool !== null) {
-            $size += 1;
-            $size += 1;
-        }
-
-        if ($this->string !== null) {
-            $size += 1;
-            $size += $calculator->computeStringSize($this->string);
-        }
-
-        if ($this->bytes !== null) {
-            $size += 1;
-            $size += $calculator->computeByteStreamSize($this->bytes);
-        }
-
-        if ($this->uint32 !== null) {
-            $size += 1;
-            $size += $calculator->computeVarintSize($this->uint32);
-        }
-
-        if ($this->sfixed32 !== null) {
-            $size += 1;
-            $size += 4;
-        }
-
-        if ($this->sfixed64 !== null) {
-            $size += 2;
-            $size += 8;
-        }
-
-        if ($this->sint32 !== null) {
-            $size += 2;
-            $size += $calculator->computeZigzag32Size($this->sint32);
-        }
-
-        if ($this->sint64 !== null) {
-            $size += 2;
-            $size += $calculator->computeZigzag64Size($this->sint64);
-        }
-
-        if ($this->extensions !== null) {
-            $size += $this->extensions->serializedSize($context);
-        }
-
-        return $size;
+        return $message;
     }
 
     /**
@@ -799,6 +723,97 @@ class Simple extends \Protobuf\AbstractMessage
 
         $this->writeTo($context);
         $stream->seek(0);
+
+        return $stream;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function writeTo(\Protobuf\WriteContext $context)
+    {
+        $stream      = $context->getStream();
+        $writer      = $context->getWriter();
+        $sizeContext = $context->getComputeSizeContext();
+
+        if ($this->double !== null) {
+            $writer->writeVarint($stream, 9);
+            $writer->writeDouble($stream, $this->double);
+        }
+
+        if ($this->float !== null) {
+            $writer->writeVarint($stream, 21);
+            $writer->writeFloat($stream, $this->float);
+        }
+
+        if ($this->int64 !== null) {
+            $writer->writeVarint($stream, 24);
+            $writer->writeVarint($stream, $this->int64);
+        }
+
+        if ($this->uint64 !== null) {
+            $writer->writeVarint($stream, 32);
+            $writer->writeVarint($stream, $this->uint64);
+        }
+
+        if ($this->int32 !== null) {
+            $writer->writeVarint($stream, 40);
+            $writer->writeVarint($stream, $this->int32);
+        }
+
+        if ($this->fixed64 !== null) {
+            $writer->writeVarint($stream, 49);
+            $writer->writeFixed64($stream, $this->fixed64);
+        }
+
+        if ($this->fixed32 !== null) {
+            $writer->writeVarint($stream, 61);
+            $writer->writeFixed32($stream, $this->fixed32);
+        }
+
+        if ($this->bool !== null) {
+            $writer->writeVarint($stream, 64);
+            $writer->writeBool($stream, $this->bool);
+        }
+
+        if ($this->string !== null) {
+            $writer->writeVarint($stream, 74);
+            $writer->writeString($stream, $this->string);
+        }
+
+        if ($this->bytes !== null) {
+            $writer->writeVarint($stream, 98);
+            $writer->writeByteStream($stream, $this->bytes);
+        }
+
+        if ($this->uint32 !== null) {
+            $writer->writeVarint($stream, 104);
+            $writer->writeVarint($stream, $this->uint32);
+        }
+
+        if ($this->sfixed32 !== null) {
+            $writer->writeVarint($stream, 125);
+            $writer->writeSFixed32($stream, $this->sfixed32);
+        }
+
+        if ($this->sfixed64 !== null) {
+            $writer->writeVarint($stream, 129);
+            $writer->writeSFixed64($stream, $this->sfixed64);
+        }
+
+        if ($this->sint32 !== null) {
+            $writer->writeVarint($stream, 136);
+            $writer->writeZigzag32($stream, $this->sint32);
+        }
+
+        if ($this->sint64 !== null) {
+            $writer->writeVarint($stream, 144);
+            $writer->writeZigzag64($stream, $this->sint64);
+        }
+
+        if ($this->extensions !== null) {
+            $this->extensions->writeTo($context);
+        }
 
         return $stream;
     }
@@ -974,106 +989,91 @@ class Simple extends \Protobuf\AbstractMessage
     /**
      * {@inheritdoc}
      */
-    public function writeTo(\Protobuf\WriteContext $context)
+    public function serializedSize(\Protobuf\ComputeSizeContext $context)
     {
-        $stream      = $context->getStream();
-        $writer      = $context->getWriter();
-        $sizeContext = $context->getComputeSizeContext();
+        $calculator = $context->getSizeCalculator();
+        $size       = 0;
 
         if ($this->double !== null) {
-            $writer->writeVarint($stream, 9);
-            $writer->writeDouble($stream, $this->double);
+            $size += 1;
+            $size += 8;
         }
 
         if ($this->float !== null) {
-            $writer->writeVarint($stream, 21);
-            $writer->writeFloat($stream, $this->float);
+            $size += 1;
+            $size += 4;
         }
 
         if ($this->int64 !== null) {
-            $writer->writeVarint($stream, 24);
-            $writer->writeVarint($stream, $this->int64);
+            $size += 1;
+            $size += $calculator->computeVarintSize($this->int64);
         }
 
         if ($this->uint64 !== null) {
-            $writer->writeVarint($stream, 32);
-            $writer->writeVarint($stream, $this->uint64);
+            $size += 1;
+            $size += $calculator->computeVarintSize($this->uint64);
         }
 
         if ($this->int32 !== null) {
-            $writer->writeVarint($stream, 40);
-            $writer->writeVarint($stream, $this->int32);
+            $size += 1;
+            $size += $calculator->computeVarintSize($this->int32);
         }
 
         if ($this->fixed64 !== null) {
-            $writer->writeVarint($stream, 49);
-            $writer->writeFixed64($stream, $this->fixed64);
+            $size += 1;
+            $size += 8;
         }
 
         if ($this->fixed32 !== null) {
-            $writer->writeVarint($stream, 61);
-            $writer->writeFixed32($stream, $this->fixed32);
+            $size += 1;
+            $size += 4;
         }
 
         if ($this->bool !== null) {
-            $writer->writeVarint($stream, 64);
-            $writer->writeBool($stream, $this->bool);
+            $size += 1;
+            $size += 1;
         }
 
         if ($this->string !== null) {
-            $writer->writeVarint($stream, 74);
-            $writer->writeString($stream, $this->string);
+            $size += 1;
+            $size += $calculator->computeStringSize($this->string);
         }
 
         if ($this->bytes !== null) {
-            $writer->writeVarint($stream, 98);
-            $writer->writeByteStream($stream, $this->bytes);
+            $size += 1;
+            $size += $calculator->computeByteStreamSize($this->bytes);
         }
 
         if ($this->uint32 !== null) {
-            $writer->writeVarint($stream, 104);
-            $writer->writeVarint($stream, $this->uint32);
+            $size += 1;
+            $size += $calculator->computeVarintSize($this->uint32);
         }
 
         if ($this->sfixed32 !== null) {
-            $writer->writeVarint($stream, 125);
-            $writer->writeSFixed32($stream, $this->sfixed32);
+            $size += 1;
+            $size += 4;
         }
 
         if ($this->sfixed64 !== null) {
-            $writer->writeVarint($stream, 129);
-            $writer->writeSFixed64($stream, $this->sfixed64);
+            $size += 2;
+            $size += 8;
         }
 
         if ($this->sint32 !== null) {
-            $writer->writeVarint($stream, 136);
-            $writer->writeZigzag32($stream, $this->sint32);
+            $size += 2;
+            $size += $calculator->computeZigzag32Size($this->sint32);
         }
 
         if ($this->sint64 !== null) {
-            $writer->writeVarint($stream, 144);
-            $writer->writeZigzag64($stream, $this->sint64);
+            $size += 2;
+            $size += $calculator->computeZigzag64Size($this->sint64);
         }
 
         if ($this->extensions !== null) {
-            $this->extensions->writeTo($context);
+            $size += $this->extensions->serializedSize($context);
         }
 
-        return $stream;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function fromStream($stream, \Protobuf\Configuration $configuration = null)
-    {
-        $config  = $configuration ?: \Protobuf\Configuration::getInstance();
-        $context = $config->createReadContext($stream);
-        $message = new self();
-
-        $message->readFrom($context);
-
-        return $message;
+        return $size;
     }
 
 

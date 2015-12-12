@@ -4,17 +4,31 @@ namespace Protobuf\Compiler\Generator\Message;
 
 use Protobuf\Compiler\Entity;
 use Protobuf\Compiler\Generator\BaseGenerator;
+use Protobuf\Compiler\Generator\GeneratorVisitor;
 
 use google\protobuf\DescriptorProto;
 use google\protobuf\FieldDescriptorProto;
+
+use Zend\Code\Generator\GeneratorInterface;
 
 /**
  * Message annotations
  *
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
  */
-class AnnotationGenerator extends BaseGenerator
+class AnnotationGenerator extends BaseGenerator implements GeneratorVisitor
 {
+    /**
+     * {@inheritdoc}
+     */
+    public function visit(Entity $entity, GeneratorInterface $class)
+    {
+        $body = $this->generateAnnotation($entity);
+        $desc = implode(PHP_EOL, $body);
+
+        $class->getDocblock()->setLongDescription($desc);
+    }
+
     /**
      * @param \Protobuf\Compiler\Entity $entity
      *

@@ -49,6 +49,13 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
     protected $extensions = null;
 
     /**
+     * bones_buried optional int32 = 1
+     *
+     * @var int
+     */
+    protected $bones_buried = null;
+
+    /**
      * Extension field : animal optional message = 101
      *
      * @var \Protobuf\Extension
@@ -56,11 +63,54 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
     protected static $animal = null;
 
     /**
-     * bones_buried optional int32 = 1
+     * Check if 'bones_buried' has a value
      *
-     * @var int
+     * @return bool
      */
-    protected $bones_buried = null;
+    public function hasBonesBuried()
+    {
+        return $this->bones_buried !== null;
+    }
+
+    /**
+     * Get 'bones_buried' value
+     *
+     * @return int
+     */
+    public function getBonesBuried()
+    {
+        return $this->bones_buried;
+    }
+
+    /**
+     * Set 'bones_buried' value
+     *
+     * @param int $value
+     */
+    public function setBonesBuried($value)
+    {
+        return $this->bones_buried = $value;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function extensions()
+    {
+        if ( $this->extensions !== null) {
+            return $this->extensions;
+        }
+
+        return $this->extensions = new \Protobuf\Extension\ExtensionFieldMap(__CLASS__);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function unknownFieldSet()
+    {
+        return $this->unknownFieldSet;
+    }
 
     /**
      * Extension field : animal
@@ -119,73 +169,17 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
     }
 
     /**
-     * Check if 'bones_buried' has a value
-     *
-     * @return bool
-     */
-    public function hasBonesBuried()
-    {
-        return $this->bones_buried !== null;
-    }
-
-    /**
-     * Get 'bones_buried' value
-     *
-     * @return int
-     */
-    public function getBonesBuried()
-    {
-        return $this->bones_buried;
-    }
-
-    /**
-     * Set 'bones_buried' value
-     *
-     * @param int $value
-     */
-    public function setBonesBuried($value)
-    {
-        return $this->bones_buried = $value;
-    }
-
-    /**
      * {@inheritdoc}
      */
-    public function unknownFieldSet()
+    public static function fromStream($stream, \Protobuf\Configuration $configuration = null)
     {
-        return $this->unknownFieldSet;
-    }
+        $config  = $configuration ?: \Protobuf\Configuration::getInstance();
+        $context = $config->createReadContext($stream);
+        $message = new self();
 
-    /**
-     * {@inheritdoc}
-     */
-    public function extensions()
-    {
-        if ( $this->extensions !== null) {
-            return $this->extensions;
-        }
+        $message->readFrom($context);
 
-        return $this->extensions = new \Protobuf\Extension\ExtensionFieldMap(__CLASS__);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function serializedSize(\Protobuf\ComputeSizeContext $context)
-    {
-        $calculator = $context->getSizeCalculator();
-        $size       = 0;
-
-        if ($this->bones_buried !== null) {
-            $size += 1;
-            $size += $calculator->computeVarintSize($this->bones_buried);
-        }
-
-        if ($this->extensions !== null) {
-            $size += $this->extensions->serializedSize($context);
-        }
-
-        return $size;
+        return $message;
     }
 
     /**
@@ -199,6 +193,27 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
 
         $this->writeTo($context);
         $stream->seek(0);
+
+        return $stream;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function writeTo(\Protobuf\WriteContext $context)
+    {
+        $stream      = $context->getStream();
+        $writer      = $context->getWriter();
+        $sizeContext = $context->getComputeSizeContext();
+
+        if ($this->bones_buried !== null) {
+            $writer->writeVarint($stream, 8);
+            $writer->writeVarint($stream, $this->bones_buried);
+        }
+
+        if ($this->extensions !== null) {
+            $this->extensions->writeTo($context);
+        }
 
         return $stream;
     }
@@ -262,36 +277,21 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
     /**
      * {@inheritdoc}
      */
-    public function writeTo(\Protobuf\WriteContext $context)
+    public function serializedSize(\Protobuf\ComputeSizeContext $context)
     {
-        $stream      = $context->getStream();
-        $writer      = $context->getWriter();
-        $sizeContext = $context->getComputeSizeContext();
+        $calculator = $context->getSizeCalculator();
+        $size       = 0;
 
         if ($this->bones_buried !== null) {
-            $writer->writeVarint($stream, 8);
-            $writer->writeVarint($stream, $this->bones_buried);
+            $size += 1;
+            $size += $calculator->computeVarintSize($this->bones_buried);
         }
 
         if ($this->extensions !== null) {
-            $this->extensions->writeTo($context);
+            $size += $this->extensions->serializedSize($context);
         }
 
-        return $stream;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function fromStream($stream, \Protobuf\Configuration $configuration = null)
-    {
-        $config  = $configuration ?: \Protobuf\Configuration::getInstance();
-        $context = $config->createReadContext($stream);
-        $message = new self();
-
-        $message->readFrom($context);
-
-        return $message;
+        return $size;
     }
 
 

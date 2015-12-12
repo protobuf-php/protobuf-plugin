@@ -2,14 +2,14 @@
 
 namespace ProtobufCompilerTest\Generator\Message;
 
-use Protobuf\Compiler\Generator\Message\WriteToMethodBodyGenerator;
+use Protobuf\Compiler\Generator\Message\WriteToGenerator;
 use google\protobuf\FieldDescriptorProto;
 use google\protobuf\DescriptorProto;
 use ProtobufCompilerTest\TestCase;
 use google\protobuf\FieldOptions;
 use Protobuf\Field;
 
-class WriteToMethodBodyGeneratorTest extends TestCase
+class WriteToGeneratorTest extends TestCase
 {
     public function testGenerateBody()
     {
@@ -31,11 +31,11 @@ class WriteToMethodBodyGeneratorTest extends TestCase
         ]);
 
         $entity    = $context->getEntity('ProtobufCompilerTest.Protos.Simple');
-        $generator = new WriteToMethodBodyGenerator($context);
+        $generator = new WriteToGenerator($context);
         $descritor = $entity->getDescriptor();
         $field     = $descritor->getFieldList()[0];
 
-        $actual   = $generator->generateBody($entity);
+        $actual   = $this->invokeMethod($generator, 'generateBody', [$entity]);
         $expected = <<<'CODE'
 $stream      = $context->getStream();
 $writer      = $context->getWriter();

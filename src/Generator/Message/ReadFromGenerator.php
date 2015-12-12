@@ -4,22 +4,60 @@ namespace Protobuf\Compiler\Generator\Message;
 
 use InvalidArgumentException;
 
-use Protobuf\WireFormat;
-use Protobuf\Compiler\Entity;
-use Protobuf\Compiler\Generator\BaseGenerator;
-
 use google\protobuf\DescriptorProto;
 use google\protobuf\FieldDescriptorProto;
 use google\protobuf\FieldDescriptorProto\Type;
 use google\protobuf\FieldDescriptorProto\Label;
 
+use Zend\Code\Generator\MethodGenerator;
+use Zend\Code\Generator\GeneratorInterface;
+
+use Protobuf\WireFormat;
+use Protobuf\Compiler\Entity;
+use Protobuf\Compiler\Generator\BaseGenerator;
+use Protobuf\Compiler\Generator\GeneratorVisitor;
+
 /**
- * Message readFromStream Body Generator
+ * Message readFrom Generator
  *
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
  */
-class ReadFromMethodBodyGenerator extends BaseGenerator
+class ReadFromGenerator extends BaseGenerator implements GeneratorVisitor
 {
+    /**
+     * {@inheritdoc}
+     */
+    public function visit(Entity $entity, GeneratorInterface $class)
+    {
+        $class->addMethodFromGenerator($this->generateReadFromMethod($entity));
+    }
+
+    /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
+     * @return \Zend\Code\Generator\GeneratorInterface
+     */
+    protected function generateReadFromMethod(Entity $entity)
+    {
+        $lines   = $this->generateBody($entity);
+        $body    = implode(PHP_EOL, $lines);
+        $method  = MethodGenerator::fromArray([
+            'name'       => 'readFrom',
+            'body'       => $body,
+            'parameters' => [
+                [
+                    'name'          => 'context',
+                    'type'          => '\Protobuf\ReadContext',
+                ]
+            ],
+            'docblock'   => [
+                'shortDescription' => "{@inheritdoc}"
+            ]
+        ]);
+
+        return $method;
+    }
+
     /**
      * @param \Protobuf\Compiler\Entity $entity
      *

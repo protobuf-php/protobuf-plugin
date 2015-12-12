@@ -6,14 +6,32 @@ use google\protobuf\FieldDescriptorProto;
 
 use Protobuf\Compiler\Entity;
 use Protobuf\Compiler\Generator\BaseGenerator;
+use Protobuf\Compiler\Generator\GeneratorVisitor;
+
+use Zend\Code\Generator\MethodGenerator;
+use Zend\Code\Generator\PropertyGenerator;
+use Zend\Code\Generator\GeneratorInterface;
 
 /**
- * Message extension Body Generator
+ * Message extension generator
  *
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
  */
-class ExtensionMethodBodyGenerator extends BaseGenerator
+class ExtensionsGenerator extends BaseGenerator implements GeneratorVisitor
 {
+    /**
+     * {@inheritdoc}
+     */
+    public function visit(Entity $entity, GeneratorInterface $class)
+    {
+        $class->addProperties($this->generateExtensionFields($entity));
+        $class->addMethods($this->generateExtensionMethods($entity));
+
+        if ($entity->getDescriptor()->hasExtensionList()) {
+            $class->setImplementedInterfaces(['\Protobuf\Extension']);
+        }
+    }
+
     /**
      * @param \Protobuf\Compiler\Entity             $entity
      * @param \google\protobuf\FieldDescriptorProto $field
@@ -52,6 +70,107 @@ class ExtensionMethodBodyGenerator extends BaseGenerator
         $body[] = 'return self::$' . $name . ' = new \Protobuf\Extension\ExtensionField(' . implode(', ', $arguments) . ');';
 
         return $body;
+    }
+
+    /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
+     * @return string
+     */
+    protected function generateExtensionMethods(Entity $entity)
+    {
+        $methods    = [];
+        $descriptor = $entity->getDescriptor();
+        $extensions = $descriptor->getExtensionList() ?: [];
+
+        foreach ($extensions as $field) {
+            $methods[] = $this->generateExtensionMethod($entity, $field);
+        }
+
+        return $methods;
+    }
+
+    /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
+     * @return string[]
+     */
+    protected function generateExtensionFields(Entity $entity)
+    {
+        $properties = [];
+        $descriptor = $entity->getDescriptor();
+        $extensions = $descriptor->getExtensionList() ?: [];
+
+        foreach ($extensions as $field) {
+            $properties[] = $this->generateExtensionField($entity, $field);
+        }
+
+        return $properties;
+    }
+
+    /**
+     * @param \Protobuf\Compiler\Entity             $entity
+     * @param \google\protobuf\FieldDescriptorProto $field
+     *
+     * @return string
+     */
+    protected function generateExtensionMethod(Entity $entity, FieldDescriptorProto $field)
+    {
+        $fieldName  = $field->getName();
+        $methodName = $this->getCamelizedName($field);
+        $lines      = $this->generateBody($entity, $field);
+        $body       = implode(PHP_EOL, $lines);
+        $method     = MethodGenerator::fromArray([
+            'static'     => true,
+            'body'       => $body,
+            'name'       => $methodName,
+            'docblock'   => [
+                'shortDescription' => "Extension field : $fieldName",
+                'tags'             => [
+                    [
+                        'name'        => 'return',
+                        'description' => '\Protobuf\Extension',
+                    ]
+                ]
+            ]
+        ]);
+
+        $method->getDocblock()->setWordWrap(false);
+
+        return $method;
+    }
+
+    /**
+     * @param \Protobuf\Compiler\Entity             $entity
+     * @param \google\protobuf\FieldDescriptorProto $field
+     *
+     * @return string
+     */
+    protected function generateExtensionField(Entity $entity, FieldDescriptorProto $field)
+    {
+        $name     = $field->getName();
+        $number   = $field->getNumber();
+        $docBlock = $this->getDocBlockType($field);
+        $type     = $this->getFieldTypeName($field);
+        $label    = $this->getFieldLabelName($field);
+        $property = PropertyGenerator::fromArray([
+            'static'       => true,
+            'name'         => $name,
+            'visibility'   => PropertyGenerator::VISIBILITY_PROTECTED,
+            'docblock'     => [
+                'shortDescription' => "Extension field : $name $label $type = $number",
+                'tags'             => [
+                    [
+                        'name'        => 'var',
+                        'description' => '\Protobuf\Extension',
+                    ]
+                ]
+            ]
+        ]);
+
+        $property->getDocblock()->setWordWrap(false);
+
+        return $property;
     }
 
     /**

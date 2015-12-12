@@ -223,14 +223,6 @@ class Person extends \Protobuf\AbstractMessage
     /**
      * {@inheritdoc}
      */
-    public function unknownFieldSet()
-    {
-        return $this->unknownFieldSet;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function extensions()
     {
         if ( $this->extensions !== null) {
@@ -243,41 +235,23 @@ class Person extends \Protobuf\AbstractMessage
     /**
      * {@inheritdoc}
      */
-    public function serializedSize(\Protobuf\ComputeSizeContext $context)
+    public function unknownFieldSet()
     {
-        $calculator = $context->getSizeCalculator();
-        $size       = 0;
+        return $this->unknownFieldSet;
+    }
 
-        if ($this->name !== null) {
-            $size += 1;
-            $size += $calculator->computeStringSize($this->name);
-        }
+    /**
+     * {@inheritdoc}
+     */
+    public static function fromStream($stream, \Protobuf\Configuration $configuration = null)
+    {
+        $config  = $configuration ?: \Protobuf\Configuration::getInstance();
+        $context = $config->createReadContext($stream);
+        $message = new self();
 
-        if ($this->id !== null) {
-            $size += 1;
-            $size += $calculator->computeVarintSize($this->id);
-        }
+        $message->readFrom($context);
 
-        if ($this->email !== null) {
-            $size += 1;
-            $size += $calculator->computeStringSize($this->email);
-        }
-
-        if ($this->phone !== null) {
-            foreach ($this->phone as $val) {
-                $innerSize = $val->serializedSize($context);
-
-                $size += 1;
-                $size += $innerSize;
-                $size += $calculator->computeVarintSize($innerSize);
-            }
-        }
-
-        if ($this->extensions !== null) {
-            $size += $this->extensions->serializedSize($context);
-        }
-
-        return $size;
+        return $message;
     }
 
     /**
@@ -291,6 +265,53 @@ class Person extends \Protobuf\AbstractMessage
 
         $this->writeTo($context);
         $stream->seek(0);
+
+        return $stream;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function writeTo(\Protobuf\WriteContext $context)
+    {
+        $stream      = $context->getStream();
+        $writer      = $context->getWriter();
+        $sizeContext = $context->getComputeSizeContext();
+
+        if ($this->name === null) {
+            throw new \UnexpectedValueException('Field "\\ProtobufCompilerTest\\Protos\\Person#name" (tag 1) is required but has no value.');
+        }
+
+        if ($this->id === null) {
+            throw new \UnexpectedValueException('Field "\\ProtobufCompilerTest\\Protos\\Person#id" (tag 2) is required but has no value.');
+        }
+
+        if ($this->name !== null) {
+            $writer->writeVarint($stream, 10);
+            $writer->writeString($stream, $this->name);
+        }
+
+        if ($this->id !== null) {
+            $writer->writeVarint($stream, 16);
+            $writer->writeVarint($stream, $this->id);
+        }
+
+        if ($this->email !== null) {
+            $writer->writeVarint($stream, 26);
+            $writer->writeString($stream, $this->email);
+        }
+
+        if ($this->phone !== null) {
+            foreach ($this->phone as $val) {
+                $writer->writeVarint($stream, 34);
+                $writer->writeVarint($stream, $val->serializedSize($sizeContext));
+                $val->writeTo($context);
+            }
+        }
+
+        if ($this->extensions !== null) {
+            $this->extensions->writeTo($context);
+        }
 
         return $stream;
     }
@@ -389,62 +410,41 @@ class Person extends \Protobuf\AbstractMessage
     /**
      * {@inheritdoc}
      */
-    public function writeTo(\Protobuf\WriteContext $context)
+    public function serializedSize(\Protobuf\ComputeSizeContext $context)
     {
-        $stream      = $context->getStream();
-        $writer      = $context->getWriter();
-        $sizeContext = $context->getComputeSizeContext();
-
-        if ($this->name === null) {
-            throw new \UnexpectedValueException('Field "\\ProtobufCompilerTest\\Protos\\Person#name" (tag 1) is required but has no value.');
-        }
-
-        if ($this->id === null) {
-            throw new \UnexpectedValueException('Field "\\ProtobufCompilerTest\\Protos\\Person#id" (tag 2) is required but has no value.');
-        }
+        $calculator = $context->getSizeCalculator();
+        $size       = 0;
 
         if ($this->name !== null) {
-            $writer->writeVarint($stream, 10);
-            $writer->writeString($stream, $this->name);
+            $size += 1;
+            $size += $calculator->computeStringSize($this->name);
         }
 
         if ($this->id !== null) {
-            $writer->writeVarint($stream, 16);
-            $writer->writeVarint($stream, $this->id);
+            $size += 1;
+            $size += $calculator->computeVarintSize($this->id);
         }
 
         if ($this->email !== null) {
-            $writer->writeVarint($stream, 26);
-            $writer->writeString($stream, $this->email);
+            $size += 1;
+            $size += $calculator->computeStringSize($this->email);
         }
 
         if ($this->phone !== null) {
             foreach ($this->phone as $val) {
-                $writer->writeVarint($stream, 34);
-                $writer->writeVarint($stream, $val->serializedSize($sizeContext));
-                $val->writeTo($context);
+                $innerSize = $val->serializedSize($context);
+
+                $size += 1;
+                $size += $innerSize;
+                $size += $calculator->computeVarintSize($innerSize);
             }
         }
 
         if ($this->extensions !== null) {
-            $this->extensions->writeTo($context);
+            $size += $this->extensions->serializedSize($context);
         }
 
-        return $stream;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function fromStream($stream, \Protobuf\Configuration $configuration = null)
-    {
-        $config  = $configuration ?: \Protobuf\Configuration::getInstance();
-        $context = $config->createReadContext($stream);
-        $message = new self();
-
-        $message->readFrom($context);
-
-        return $message;
+        return $size;
     }
 
 

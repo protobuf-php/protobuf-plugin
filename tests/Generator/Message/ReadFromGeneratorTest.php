@@ -2,14 +2,14 @@
 
 namespace ProtobufCompilerTest\Generator\Message;
 
-use Protobuf\Compiler\Generator\Message\ReadFromMethodBodyGenerator;
+use Protobuf\Compiler\Generator\Message\ReadFromGenerator;
 use google\protobuf\FieldDescriptorProto;
 use google\protobuf\DescriptorProto;
 use ProtobufCompilerTest\TestCase;
 use google\protobuf\FieldOptions;
 use Protobuf\Field;
 
-class ReadFromMethodBodyGeneratorTest extends TestCase
+class ReadFromGeneratorTest extends TestCase
 {
     public function testGenerateBody()
     {
@@ -31,11 +31,11 @@ class ReadFromMethodBodyGeneratorTest extends TestCase
         ]);
 
         $entity    = $context->getEntity('ProtobufCompilerTest.Protos.Simple');
-        $generator = new ReadFromMethodBodyGenerator($context);
+        $generator = new ReadFromGenerator($context);
         $descritor = $entity->getDescriptor();
         $field     = $descritor->getFieldList()[0];
 
-        $actual   = $generator->generateBody($entity);
+        $actual   = $this->invokeMethod($generator, 'generateBody', [$entity]);
         $expected = <<<'CODE'
 $reader = $context->getReader();
 $length = $context->getLength();

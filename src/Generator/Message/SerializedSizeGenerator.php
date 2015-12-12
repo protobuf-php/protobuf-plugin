@@ -2,25 +2,63 @@
 
 namespace Protobuf\Compiler\Generator\Message;
 
-use Protobuf\Compiler\Entity;
-use Protobuf\Compiler\Generator\BaseGenerator;
-
 use google\protobuf\DescriptorProto;
 use google\protobuf\FieldDescriptorProto;
+
+use Zend\Code\Generator\MethodGenerator;
+use Zend\Code\Generator\GeneratorInterface;
+
+use Protobuf\Compiler\Entity;
+use Protobuf\Compiler\Generator\BaseGenerator;
+use Protobuf\Compiler\Generator\GeneratorVisitor;
 
 /**
  * Message serializedSize Body Generator
  *
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
  */
-class SerializedSizeMethodBodyGenerator extends BaseGenerator
+class SerializedSizeGenerator extends BaseGenerator implements GeneratorVisitor
 {
+    /**
+     * {@inheritdoc}
+     */
+    public function visit(Entity $entity, GeneratorInterface $class)
+    {
+        $class->addMethodFromGenerator($this->generateSerializedSizeMethod($entity));
+    }
+
+    /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
+     * @return string
+     */
+    protected function generateSerializedSizeMethod(Entity $entity)
+    {
+        $lines   = $this->generateBody($entity);
+        $body    = implode(PHP_EOL, $lines);
+        $method  = MethodGenerator::fromArray([
+            'name'       => 'serializedSize',
+            'body'       => $body,
+            'parameters' => [
+                [
+                    'name'         => 'context',
+                    'type'         => '\Protobuf\ComputeSizeContext'
+                ]
+            ],
+            'docblock'   => [
+                'shortDescription' => "{@inheritdoc}"
+            ]
+        ]);
+
+        return $method;
+    }
+
     /**
      * @param \Protobuf\Compiler\Entity $entity
      *
      * @return string[]
      */
-    public function generateBody(Entity $entity)
+    protected function generateBody(Entity $entity)
     {
         $descriptor = $entity->getDescriptor();
         $fields     = $descriptor->getFieldList() ?: [];
@@ -47,7 +85,7 @@ class SerializedSizeMethodBodyGenerator extends BaseGenerator
      *
      * @return string[]
      */
-    public function generateExtensionsSerializedSize(Entity $entity)
+    protected function generateExtensionsSerializedSize(Entity $entity)
     {
         $descriptor      = $entity->getDescriptor();
         $extensionsField = $this->getUniqueFieldName($descriptor, 'extensions');
@@ -65,7 +103,7 @@ class SerializedSizeMethodBodyGenerator extends BaseGenerator
      *
      * @return string[]
      */
-    public function generateFieldCondition(Entity $entity, FieldDescriptorProto $field)
+    protected function generateFieldCondition(Entity $entity, FieldDescriptorProto $field)
     {
         $sttm  = $this->generateFieldSizeStatement($entity, $field);
         $lines = $this->addIndentation($sttm, 1);
@@ -84,7 +122,7 @@ class SerializedSizeMethodBodyGenerator extends BaseGenerator
      *
      * @return string[]
      */
-    public function generateFieldSizeStatement(Entity $entity, FieldDescriptorProto $field)
+    protected function generateFieldSizeStatement(Entity $entity, FieldDescriptorProto $field)
     {
         $generator = new SerializedSizeFieldStatementGenerator($this->context);
         $statement = $generator->generateFieldSizeStatement($entity, $field);

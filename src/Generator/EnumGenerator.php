@@ -16,10 +16,10 @@ use google\protobuf\EnumValueDescriptorProto;
  *
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
  */
-class EnumGenerator extends BaseGenerator
+class EnumGenerator extends BaseGenerator implements EntityVisitor
 {
     /**
-     * @param \Protobuf\Compiler\Entity $entity
+     * {@inheritdoc}
      */
     public function visit(Entity $entity)
     {
