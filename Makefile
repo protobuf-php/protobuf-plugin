@@ -18,7 +18,7 @@ all: install phpunit
 
 install: composer-install proto-generate
 
-test: phpcs phpunit
+test: proto-generate phpcs phpunit
 
 composer-install:
 ifdef COMPOSER
@@ -31,7 +31,13 @@ else
 endif
 
 proto-clean:
-	rm -rf $(BASEDIR)/tests/Resources/generated/*;
+	rm -rf $(BASEDIR)/tests/Protos/*;
+
+proto-generate: proto-clean
+	php $(BASEDIR)/bin/protobuf --include-descriptors \
+		--psr4 ProtobufCompilerTest\\Protos \
+		-o $(BASEDIR)/tests/Protos \
+		$(BASEDIR)/tests/Resources/*.proto
 
 phpunit:
 	php $(BASEDIR)/vendor/bin/phpunit -v;
