@@ -7,6 +7,7 @@ use Zend\Code\Generator\ClassGenerator;
 use Protobuf\Compiler\Entity;
 use Protobuf\Compiler\Context;
 
+use Protobuf\Compiler\Generator\Message\ClearGenerator;
 use Protobuf\Compiler\Generator\Message\FieldsGenerator;
 use Protobuf\Compiler\Generator\Message\WriteToGenerator;
 use Protobuf\Compiler\Generator\Message\ReadFromGenerator;
@@ -45,7 +46,8 @@ class MessageGenerator extends BaseGenerator implements EntityVisitor
             new ToStreamGenerator($context),
             new WriteToGenerator($context),
             new ReadFromGenerator($context),
-            new SerializedSizeGenerator($context)
+            new SerializedSizeGenerator($context),
+            new ClearGenerator($context),
         ];
     }
 

@@ -58,13 +58,7 @@ class SimpleMessage extends \Protobuf\AbstractMessage
      */
     public static function fromStream($stream, \Protobuf\Configuration $configuration = null)
     {
-        $config  = $configuration ?: \Protobuf\Configuration::getInstance();
-        $context = $config->createReadContext($stream);
-        $message = new self();
-
-        $message->readFrom($context);
-
-        return $message;
+        return new self($stream, $configuration);
     }
 
     /**
@@ -159,6 +153,13 @@ class SimpleMessage extends \Protobuf\AbstractMessage
         }
 
         return $size;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function clear()
+    {
     }
 
 

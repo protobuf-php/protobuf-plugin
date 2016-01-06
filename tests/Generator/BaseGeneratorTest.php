@@ -7,6 +7,7 @@ use google\protobuf\DescriptorProto;
 
 use Protobuf\Compiler\Generator\BaseGenerator;
 use Protobuf\Compiler\Entity;
+use Protobuf\Field;
 
 use ProtobufCompilerTest\TestCase;
 
@@ -108,6 +109,21 @@ class BaseGeneratorTest extends TestCase
         $field->setDefaultValue($default);
 
         $expected = '12345';
+        $actual   = $this->invokeMethod($this->generator, 'getDefaultFieldValue', [$field]);
+
+        $this->assertEquals($expected, $actual);
+    }
+
+    public function testGetDefaultFieldValueNull()
+    {
+        $type    = FieldDescriptorProto\Type::TYPE_BOOL();
+        $field   = new FieldDescriptorProto();
+        $default = null;
+
+        $field->setType($type);
+        $field->setDefaultValue($default);
+
+        $expected = 'null';
         $actual   = $this->invokeMethod($this->generator, 'getDefaultFieldValue', [$field]);
 
         $this->assertEquals($expected, $actual);
@@ -220,5 +236,18 @@ class BaseGeneratorTest extends TestCase
         $actual   = $this->invokeMethod($this->generator, 'getUniqueFieldName', [$proto, $default]);
 
         $this->assertEquals($expected, $actual);
+    }
+
+    public function testGetCollectionClassName()
+    {
+        $fieldBytes   = $this->createFieldDescriptorProto(1, 'bytes', Field::TYPE_BYTES, Field::LABEL_REPEATED);
+        $fieldScalar  = $this->createFieldDescriptorProto(1, 'double', Field::TYPE_DOUBLE, Field::LABEL_REPEATED);
+        $fieldEnum    = $this->createFieldDescriptorProto(1, 'enum', Field::TYPE_ENUM, Field::LABEL_REPEATED, '.Protos.PhoneType');
+        $fieldMessage = $this->createFieldDescriptorProto(1, 'message', Field::TYPE_MESSAGE, Field::LABEL_REPEATED, '.Protos.PhoneNumber');
+
+        $this->assertEquals('\Protobuf\EnumCollection', $this->invokeMethod($this->generator, 'getCollectionClassName', [$fieldEnum]));
+        $this->assertEquals('\Protobuf\StreamCollection', $this->invokeMethod($this->generator, 'getCollectionClassName', [$fieldBytes]));
+        $this->assertEquals('\Protobuf\ScalarCollection', $this->invokeMethod($this->generator, 'getCollectionClassName', [$fieldScalar]));
+        $this->assertEquals('\Protobuf\MessageCollection', $this->invokeMethod($this->generator, 'getCollectionClassName', [$fieldMessage]));
     }
 }

@@ -64,12 +64,10 @@ class ServiceGenerator extends BaseGenerator implements EntityVisitor
      */
     protected function generateMethod(Entity $entity, MethodDescriptorProto $method)
     {
-        $methodName  = $method->getName();
-        $descriptor  = $entity->getDescriptor();
-        $input       = $this->getEntity($method->getInputType());
-        $output      = $this->getEntity($method->getOutputType());
-        $inputClass  = $input->getNamespacedName();
-        $outputClass = $output->getNamespacedName();
+        $inputClass  = $this->getMethodInputTypeHint($method);
+        $inputDoc    = $this->getMethodInputDocblock($method);
+        $outputDoc   = $this->getMethodOutputDocblock($method);
+        $methodName  = $this->getCamelizedValue($method->getName());
         $method      = MethodGenerator::fromArray([
             'name'       => $methodName,
             'parameters' => [
@@ -82,16 +80,86 @@ class ServiceGenerator extends BaseGenerator implements EntityVisitor
                 'tags'             => [
                     [
                         'name'        => 'param',
-                        'description' =>  $inputClass . ' $input'
+                        'description' =>  $inputDoc . ' $input'
                     ],
                     [
                         'name'        => 'return',
-                        'description' =>  $outputClass
+                        'description' =>  $outputDoc
                     ]
                 ]
             ]
         ]);
 
         return $method;
+    }
+
+    /**
+     * @param \google\protobuf\MethodDescriptorProto $method
+     *
+     * @return string
+     */
+    protected function getMethodInputTypeHint(MethodDescriptorProto $method)
+    {
+        $refType   = $method->getInputType();
+        $refEntity = $this->getEntity($refType);
+
+        if ($method->getClientStreaming()) {
+            return '\Iterator';
+        }
+
+        return $refEntity->getNamespacedName();
+    }
+
+    /**
+     * @param \google\protobuf\MethodDescriptorProto $method
+     *
+     * @return string
+     */
+    protected function getMethodOutputTypeHint(MethodDescriptorProto $method)
+    {
+        $refType   = $method->getOutputType();
+        $refEntity = $this->getEntity($refType);
+
+        if ($method->getServerStreaming()) {
+            return '\Iterator';
+        }
+
+        return $refEntity->getNamespacedName();
+    }
+
+    /**
+     * @param \google\protobuf\MethodDescriptorProto $method
+     *
+     * @return string
+     */
+    protected function getMethodInputDocblock(MethodDescriptorProto $method)
+    {
+        $refType   = $method->getInputType();
+        $refEntity = $this->getEntity($refType);
+        $refClass  = $this->getMethodInputTypeHint($method);
+
+        if ($method->getClientStreaming()) {
+            return sprintf('\Iterator<%s>', $refEntity->getNamespacedName());
+        }
+
+        return $refClass;
+    }
+
+    /**
+     * @param \google\protobuf\MethodDescriptorProto $method
+     *
+     * @return string
+     */
+    protected function getMethodOutputDocblock(MethodDescriptorProto $method)
+    {
+        $refType   = $method->getOutputType();
+        $refEntity = $this->getEntity($refType);
+        $refClass  = $this->getMethodOutputTypeHint($method);
+
+        if ($method->getServerStreaming()) {
+            return sprintf('\Iterator<%s>', $refEntity->getNamespacedName());
+        }
+
+        return $refClass;
     }
 }

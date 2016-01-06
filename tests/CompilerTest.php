@@ -27,10 +27,11 @@ class CompilerTest extends TestCase
         $expectedContent = $this->getFixtureFileContent('Simple.tpl');
 
         $compiler       = new Compiler($this->logger);
-        $binaryResponse = $compiler->compile(Stream::create($binaryRequest));
+        $binaryResponse = $compiler->compile(Stream::wrap($binaryRequest));
         $response       = CodeGeneratorResponse::fromStream($binaryResponse);
 
         $this->assertInstanceOf('google\protobuf\compiler\CodeGeneratorResponse', $response);
+        $this->assertInstanceOf('Protobuf\Collection', $response->getFileList());
         $this->assertCount(1, $response->getFileList());
 
         $file = $response->getFileList()[0];

@@ -40,8 +40,20 @@ class ConstructGenerator extends BaseGenerator implements GeneratorVisitor
         $method  = MethodGenerator::fromArray([
             'name'       => '__construct',
             'body'       => $body,
+            'parameters' => [
+                [
+                    'name'          => 'stream',
+                    'type'          => 'mixed',
+                    'defaultValue'  => null
+                ],
+                [
+                    'name'          => 'configuration',
+                    'type'          => '\Protobuf\Configuration',
+                    'defaultValue'  => null
+                ]
+            ],
             'docblock'   => [
-                'shortDescription' => "Constructor"
+                'shortDescription' => '{@inheritdoc}'
             ]
         ]);
 
@@ -69,6 +81,9 @@ class ConstructGenerator extends BaseGenerator implements GeneratorVisitor
 
             $body[] = sprintf('$this->%s = %s;', $name, $value);
         }
+
+        $body[] = null;
+        $body[] = 'parent::__construct($stream, $configuration);';
 
         return $body;
     }

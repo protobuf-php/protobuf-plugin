@@ -146,9 +146,36 @@ class BaseGenerator
      *
      * @return string
      */
+    protected function getCollectionClassName(FieldDescriptorProto $field)
+    {
+        $type = $field->getType();
+
+        if ($type === Type::TYPE_MESSAGE()) {
+            return '\Protobuf\MessageCollection';
+        }
+
+        if ($type === Type::TYPE_BYTES()) {
+            return '\Protobuf\StreamCollection';
+        }
+
+        if ($type === Type::TYPE_ENUM()) {
+            return '\Protobuf\EnumCollection';
+        }
+
+        return '\Protobuf\ScalarCollection';
+    }
+
+    /**
+     * @param \google\protobuf\FieldDescriptorProto $field
+     *
+     * @return string
+     */
     protected function getClassifiedName(FieldDescriptorProto $field)
     {
-        return Inflector::classify($field->getName());
+        $name  = $field->getName();
+        $value = $this->getClassifiedValue($name);
+
+        return $value;
     }
 
     /**
@@ -158,7 +185,30 @@ class BaseGenerator
      */
     protected function getCamelizedName(FieldDescriptorProto $field)
     {
-        return Inflector::camelize($field->getName());
+        $name  = $field->getName();
+        $value = $this->getCamelizedValue($name);
+
+        return $value;
+    }
+
+    /**
+     * @param string $value
+     *
+     * @return string
+     */
+    protected function getClassifiedValue($value)
+    {
+        return Inflector::classify($value);
+    }
+
+    /**
+     * @param string $value
+     *
+     * @return string
+     */
+    protected function getCamelizedValue($value)
+    {
+        return Inflector::camelize($value);
     }
 
     /**
@@ -188,6 +238,10 @@ class BaseGenerator
     {
         $type  = $field->getType();
         $value = $field->getDefaultValue();
+
+        if ($value === null) {
+            return 'null';
+        }
 
         if ($type === Type::TYPE_ENUM()) {
             $typeName  = $field->getTypeName();

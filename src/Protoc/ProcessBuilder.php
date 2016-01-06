@@ -132,15 +132,6 @@ class ProcessBuilder
             $builder->add(sprintf('--proto_path=%s', $this->findDescriptorsPath()));
         }
 
-        if (empty($include)) {
-            $firstProto = reset($protosFiles);
-            $protoPath  = ($firstProto instanceof SplFileInfo)
-                ? $firstProto->getBasename()
-                : dirname($firstProto);
-
-            $builder->add(sprintf('--proto_path=%s', $protoPath));
-        }
-
         // Protoc will pass custom arguments to the plugin if they are given
         // before a colon character. ie: --php_out="foo=bar:/path/to/plugin"
         $out = ( ! empty($parameters))

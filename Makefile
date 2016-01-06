@@ -1,7 +1,8 @@
 # vim: ts=4:sw=4:noexpandtab!:
 
-BASEDIR  := $(shell pwd)
-COMPOSER := $(shell which composer)
+BASEDIR        := $(shell pwd)
+COMPOSER       := $(shell which composer)
+PROTOC_VERSION := $(shell protoc --version | grep -oEi '([0-9]).*' | cut -d '.' -f 1)
 
 help:
 	@echo "---------------------------------------------"
@@ -34,10 +35,18 @@ proto-clean:
 	rm -rf $(BASEDIR)/tests/Protos/*;
 
 proto-generate: proto-clean
+ifeq ($(PROTOC_VERSION), 3)
 	php $(BASEDIR)/bin/protobuf --include-descriptors \
 		--psr4 ProtobufCompilerTest\\Protos \
 		-o $(BASEDIR)/tests/Protos \
-		$(BASEDIR)/tests/Resources/*.proto
+		-i $(BASEDIR)/tests/Resources \
+		$(BASEDIR)/tests/Resources/proto3/*.proto
+endif
+	php $(BASEDIR)/bin/protobuf --include-descriptors \
+		--psr4 ProtobufCompilerTest\\Protos \
+		-o $(BASEDIR)/tests/Protos \
+		-i $(BASEDIR)/tests/Resources \
+		$(BASEDIR)/tests/Resources/proto2/*.proto
 
 phpunit:
 	php $(BASEDIR)/vendor/bin/phpunit -v;

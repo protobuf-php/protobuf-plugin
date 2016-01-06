@@ -62,11 +62,13 @@ class PhoneNumber extends \Protobuf\AbstractMessage
     protected $type = null;
 
     /**
-     * Constructor
+     * {@inheritdoc}
      */
-    public function __construct()
+    public function __construct($stream = null, \Protobuf\Configuration $configuration = null)
     {
         $this->type = \ProtobufCompilerTest\Protos\PhoneType::HOME();
+
+        parent::__construct($stream, $configuration);
     }
 
     /**
@@ -96,7 +98,7 @@ class PhoneNumber extends \Protobuf\AbstractMessage
      */
     public function setNumber($value)
     {
-        return $this->number = $value;
+        $this->number = $value;
     }
 
     /**
@@ -124,9 +126,9 @@ class PhoneNumber extends \Protobuf\AbstractMessage
      *
      * @param \ProtobufCompilerTest\Protos\PhoneType $value
      */
-    public function setType(\ProtobufCompilerTest\Protos\PhoneType $value)
+    public function setType(\ProtobufCompilerTest\Protos\PhoneType $value = null)
     {
-        return $this->type = $value;
+        $this->type = $value;
     }
 
     /**
@@ -154,13 +156,7 @@ class PhoneNumber extends \Protobuf\AbstractMessage
      */
     public static function fromStream($stream, \Protobuf\Configuration $configuration = null)
     {
-        $config  = $configuration ?: \Protobuf\Configuration::getInstance();
-        $context = $config->createReadContext($stream);
-        $message = new self();
-
-        $message->readFrom($context);
-
-        return $message;
+        return new self($stream, $configuration);
     }
 
     /**
@@ -295,6 +291,15 @@ class PhoneNumber extends \Protobuf\AbstractMessage
         }
 
         return $size;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function clear()
+    {
+        $this->number = null;
+        $this->type = \ProtobufCompilerTest\Protos\PhoneType::HOME();
     }
 
 

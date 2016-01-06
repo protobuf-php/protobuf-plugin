@@ -253,9 +253,9 @@ class Simple extends \Protobuf\AbstractMessage
      *
      * @param float $value
      */
-    public function setDouble($value)
+    public function setDouble($value = null)
     {
-        return $this->double = $value;
+        $this->double = $value;
     }
 
     /**
@@ -283,9 +283,9 @@ class Simple extends \Protobuf\AbstractMessage
      *
      * @param float $value
      */
-    public function setFloat($value)
+    public function setFloat($value = null)
     {
-        return $this->float = $value;
+        $this->float = $value;
     }
 
     /**
@@ -313,9 +313,9 @@ class Simple extends \Protobuf\AbstractMessage
      *
      * @param int $value
      */
-    public function setInt64($value)
+    public function setInt64($value = null)
     {
-        return $this->int64 = $value;
+        $this->int64 = $value;
     }
 
     /**
@@ -343,9 +343,9 @@ class Simple extends \Protobuf\AbstractMessage
      *
      * @param int $value
      */
-    public function setUint64($value)
+    public function setUint64($value = null)
     {
-        return $this->uint64 = $value;
+        $this->uint64 = $value;
     }
 
     /**
@@ -373,9 +373,9 @@ class Simple extends \Protobuf\AbstractMessage
      *
      * @param int $value
      */
-    public function setInt32($value)
+    public function setInt32($value = null)
     {
-        return $this->int32 = $value;
+        $this->int32 = $value;
     }
 
     /**
@@ -403,9 +403,9 @@ class Simple extends \Protobuf\AbstractMessage
      *
      * @param int $value
      */
-    public function setFixed64($value)
+    public function setFixed64($value = null)
     {
-        return $this->fixed64 = $value;
+        $this->fixed64 = $value;
     }
 
     /**
@@ -433,9 +433,9 @@ class Simple extends \Protobuf\AbstractMessage
      *
      * @param int $value
      */
-    public function setFixed32($value)
+    public function setFixed32($value = null)
     {
-        return $this->fixed32 = $value;
+        $this->fixed32 = $value;
     }
 
     /**
@@ -463,9 +463,9 @@ class Simple extends \Protobuf\AbstractMessage
      *
      * @param bool $value
      */
-    public function setBool($value)
+    public function setBool($value = null)
     {
-        return $this->bool = $value;
+        $this->bool = $value;
     }
 
     /**
@@ -493,9 +493,9 @@ class Simple extends \Protobuf\AbstractMessage
      *
      * @param string $value
      */
-    public function setString($value)
+    public function setString($value = null)
     {
-        return $this->string = $value;
+        $this->string = $value;
     }
 
     /**
@@ -523,9 +523,9 @@ class Simple extends \Protobuf\AbstractMessage
      *
      * @param \Protobuf\Stream $value
      */
-    public function setBytes(\Protobuf\Stream $value)
+    public function setBytes($value = null)
     {
-        return $this->bytes = $value;
+        $this->bytes = \Protobuf\Stream::wrap($value);
     }
 
     /**
@@ -553,9 +553,9 @@ class Simple extends \Protobuf\AbstractMessage
      *
      * @param int $value
      */
-    public function setUint32($value)
+    public function setUint32($value = null)
     {
-        return $this->uint32 = $value;
+        $this->uint32 = $value;
     }
 
     /**
@@ -583,9 +583,9 @@ class Simple extends \Protobuf\AbstractMessage
      *
      * @param int $value
      */
-    public function setSfixed32($value)
+    public function setSfixed32($value = null)
     {
-        return $this->sfixed32 = $value;
+        $this->sfixed32 = $value;
     }
 
     /**
@@ -613,9 +613,9 @@ class Simple extends \Protobuf\AbstractMessage
      *
      * @param int $value
      */
-    public function setSfixed64($value)
+    public function setSfixed64($value = null)
     {
-        return $this->sfixed64 = $value;
+        $this->sfixed64 = $value;
     }
 
     /**
@@ -643,9 +643,9 @@ class Simple extends \Protobuf\AbstractMessage
      *
      * @param int $value
      */
-    public function setSint32($value)
+    public function setSint32($value = null)
     {
-        return $this->sint32 = $value;
+        $this->sint32 = $value;
     }
 
     /**
@@ -673,9 +673,9 @@ class Simple extends \Protobuf\AbstractMessage
      *
      * @param int $value
      */
-    public function setSint64($value)
+    public function setSint64($value = null)
     {
-        return $this->sint64 = $value;
+        $this->sint64 = $value;
     }
 
     /**
@@ -703,13 +703,7 @@ class Simple extends \Protobuf\AbstractMessage
      */
     public static function fromStream($stream, \Protobuf\Configuration $configuration = null)
     {
-        $config  = $configuration ?: \Protobuf\Configuration::getInstance();
-        $context = $config->createReadContext($stream);
-        $message = new self();
-
-        $message->readFrom($context);
-
-        return $message;
+        return new self($stream, $configuration);
     }
 
     /**
@@ -1074,6 +1068,28 @@ class Simple extends \Protobuf\AbstractMessage
         }
 
         return $size;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function clear()
+    {
+        $this->double = null;
+        $this->float = null;
+        $this->int64 = null;
+        $this->uint64 = null;
+        $this->int32 = null;
+        $this->fixed64 = null;
+        $this->fixed32 = null;
+        $this->bool = null;
+        $this->string = null;
+        $this->bytes = null;
+        $this->uint32 = null;
+        $this->sfixed32 = null;
+        $this->sfixed64 = null;
+        $this->sint32 = null;
+        $this->sint64 = null;
     }
 
 

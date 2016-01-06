@@ -99,7 +99,7 @@ class FieldsGenerator extends BaseGenerator implements GeneratorVisitor
         $methodName = $this->getAccessorName('set', $field);
         $method     = MethodGenerator::fromArray([
             'name'       => $methodName,
-            'body'       => 'return $this->' . $fieldName . ' = $value;',
+            'body'       => '$this->' . $fieldName . ' = $value;',
             'parameters' => [
                 [
                     'name'   => 'value',
@@ -118,6 +118,19 @@ class FieldsGenerator extends BaseGenerator implements GeneratorVisitor
         ]);
 
         $method->getDocblock()->setWordWrap(false);
+
+        $fieldType  = $field->getType();
+        $fieldLabel = $field->getLabel();
+        $parameters = $method->getParameters();
+
+        if ($fieldLabel !== Label::LABEL_REQUIRED()) {
+            $parameters['value']->setDefaultValue(null);
+        }
+
+        if ($fieldType === Type::TYPE_BYTES()) {
+            $parameters['value']->setType(null);
+            $method->setBody('$this->' . $fieldName . ' = \Protobuf\Stream::wrap($value);');
+        }
 
         return $method;
     }
@@ -159,16 +172,14 @@ class FieldsGenerator extends BaseGenerator implements GeneratorVisitor
     {
         $fieldName  = $field->getName();
         $fieldType  = $field->getTypeName();
+        $collClass  = $this->getCollectionClassName($field);
         $methodName = 'add' . $this->getClassifiedName($field);
-        $collClass  = ($fieldType !== null)
-            ? '\Protobuf\MessageCollection'
-            : '\Protobuf\ScalarCollection';
 
         $lines[] = 'if ( $this->' . $fieldName . ' === null) {';
         $lines[] = '    $this->' . $fieldName . ' = new ' . $collClass . '();';
         $lines[] = '}';
         $lines[] = null;
-        $lines[] = '$this->' . $fieldName . '[] = $value;';
+        $lines[] = '$this->' . $fieldName . '->add($value);';
 
         return MethodGenerator::fromArray([
             'name'       => $methodName,

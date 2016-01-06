@@ -87,9 +87,9 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
      *
      * @param int $value
      */
-    public function setBonesBuried($value)
+    public function setBonesBuried($value = null)
     {
-        return $this->bones_buried = $value;
+        $this->bones_buried = $value;
     }
 
     /**
@@ -173,13 +173,7 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
      */
     public static function fromStream($stream, \Protobuf\Configuration $configuration = null)
     {
-        $config  = $configuration ?: \Protobuf\Configuration::getInstance();
-        $context = $config->createReadContext($stream);
-        $message = new self();
-
-        $message->readFrom($context);
-
-        return $message;
+        return new self($stream, $configuration);
     }
 
     /**
@@ -292,6 +286,14 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
         }
 
         return $size;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function clear()
+    {
+        $this->bones_buried = null;
     }
 
 

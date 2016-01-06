@@ -64,14 +64,8 @@ class FromStreamGenerator extends BaseGenerator implements GeneratorVisitor
      */
     public function generateBody()
     {
-        $body[] = '$config  = $configuration ?: \Protobuf\Configuration::getInstance();';
-        $body[] = '$context = $config->createReadContext($stream);';
-        $body[] = '$message = new self();';
-        $body[] = null;
-        $body[] = '$message->readFrom($context);';
-        $body[] = null;
-        $body[] = 'return $message;';
-
-        return $body;
+        return [
+            'return new self($stream, $configuration);'
+        ];
     }
 }

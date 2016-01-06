@@ -113,7 +113,7 @@ class Person extends \Protobuf\AbstractMessage
      */
     public function setName($value)
     {
-        return $this->name = $value;
+        $this->name = $value;
     }
 
     /**
@@ -143,7 +143,7 @@ class Person extends \Protobuf\AbstractMessage
      */
     public function setId($value)
     {
-        return $this->id = $value;
+        $this->id = $value;
     }
 
     /**
@@ -171,9 +171,9 @@ class Person extends \Protobuf\AbstractMessage
      *
      * @param string $value
      */
-    public function setEmail($value)
+    public function setEmail($value = null)
     {
-        return $this->email = $value;
+        $this->email = $value;
     }
 
     /**
@@ -201,9 +201,9 @@ class Person extends \Protobuf\AbstractMessage
      *
      * @param \Protobuf\Collection<\ProtobufCompilerTest\Protos\PhoneNumber> $value
      */
-    public function setPhoneList(\Protobuf\Collection $value)
+    public function setPhoneList(\Protobuf\Collection $value = null)
     {
-        return $this->phone = $value;
+        $this->phone = $value;
     }
 
     /**
@@ -217,7 +217,7 @@ class Person extends \Protobuf\AbstractMessage
             $this->phone = new \Protobuf\MessageCollection();
         }
 
-        $this->phone[] = $value;
+        $this->phone->add($value);
     }
 
     /**
@@ -245,13 +245,7 @@ class Person extends \Protobuf\AbstractMessage
      */
     public static function fromStream($stream, \Protobuf\Configuration $configuration = null)
     {
-        $config  = $configuration ?: \Protobuf\Configuration::getInstance();
-        $context = $config->createReadContext($stream);
-        $message = new self();
-
-        $message->readFrom($context);
-
-        return $message;
+        return new self($stream, $configuration);
     }
 
     /**
@@ -445,6 +439,17 @@ class Person extends \Protobuf\AbstractMessage
         }
 
         return $size;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function clear()
+    {
+        $this->name = null;
+        $this->id = null;
+        $this->email = null;
+        $this->phone = null;
     }
 
 
