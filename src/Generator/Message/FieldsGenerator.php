@@ -127,7 +127,7 @@ class FieldsGenerator extends BaseGenerator implements GeneratorVisitor
             $parameters['value']->setDefaultValue(null);
         }
 
-        if ($fieldType === Type::TYPE_BYTES()) {
+        if ($fieldType === Type::TYPE_BYTES() && $fieldLabel !== Label::LABEL_REPEATED()) {
             $parameters['value']->setType(null);
             $method->setBody('$this->' . $fieldName . ' = \Protobuf\Stream::wrap($value);');
         }
@@ -171,15 +171,20 @@ class FieldsGenerator extends BaseGenerator implements GeneratorVisitor
     protected function generateAddMethod(Entity $entity, FieldDescriptorProto $field)
     {
         $fieldName  = $field->getName();
-        $fieldType  = $field->getTypeName();
+        $fieldType  = $field->getType();
         $collClass  = $this->getCollectionClassName($field);
         $methodName = 'add' . $this->getClassifiedName($field);
+        $typeHint   = ($fieldType !== Type::TYPE_BYTES())
+            ? $this->getDoctype($field)
+            : null;
 
         $lines[] = 'if ( $this->' . $fieldName . ' === null) {';
         $lines[] = '    $this->' . $fieldName . ' = new ' . $collClass . '();';
         $lines[] = '}';
         $lines[] = null;
-        $lines[] = '$this->' . $fieldName . '->add($value);';
+        $lines[] = ($fieldType !== Type::TYPE_BYTES())
+            ? '$this->' . $fieldName . '->add($value);'
+            : '$this->' . $fieldName . '->add(\Protobuf\Stream::wrap($value));';
 
         return MethodGenerator::fromArray([
             'name'       => $methodName,
@@ -187,7 +192,7 @@ class FieldsGenerator extends BaseGenerator implements GeneratorVisitor
             'parameters' => [
                 [
                     'name'   => 'value',
-                    'type'   => $this->getDoctype($field)
+                    'type'   => $typeHint
                 ]
             ],
             'docblock'   => [

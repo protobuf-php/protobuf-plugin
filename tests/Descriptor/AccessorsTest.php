@@ -81,22 +81,35 @@ class AccessorsTest extends TestCase
         $intList    = $this->getMock('Protobuf\ScalarCollection');
         $stringList = $this->getMock('Protobuf\ScalarCollection');
         $nestedList = $this->getMock('Protobuf\MessageCollection');
+        $bytesList  = $this->getMock('Protobuf\StreamCollection');
 
         $this->assertNull($repeated->getIntList());
+        $this->assertNull($repeated->getBytesList());
         $this->assertNull($repeated->getStringList());
         $this->assertNull($repeated->getNestedList());
 
         $repeated->setIntList($intList);
+        $repeated->setBytesList($bytesList);
         $repeated->setStringList($stringList);
         $repeated->setNestedList($nestedList);
 
         $this->assertSame($intList, $repeated->getIntList());
+        $this->assertSame($bytesList, $repeated->getBytesList());
         $this->assertSame($stringList, $repeated->getStringList());
         $this->assertSame($nestedList, $repeated->getNestedList());
 
         $intList->expects($this->once())
             ->method('add')
             ->with($this->equalTo(1));
+
+        $bytesList->expects($this->once())
+            ->method('add')
+            ->with($this->callback(function ($value) {
+                $this->assertInstanceOf('Protobuf\Stream', $value);
+                $this->assertEquals('bin', (string) $value);
+
+                return true;
+            }));
 
         $stringList->expects($this->once())
             ->method('add')
@@ -108,18 +121,22 @@ class AccessorsTest extends TestCase
 
         $nested->setId(1);
         $repeated->addInt(1);
+        $repeated->addBytes('bin');
         $repeated->addString('one');
         $repeated->addNested($nested);
 
         $this->assertSame($intList, $repeated->getIntList());
+        $this->assertSame($bytesList, $repeated->getBytesList());
         $this->assertSame($stringList, $repeated->getStringList());
         $this->assertSame($nestedList, $repeated->getNestedList());
 
         $repeated->setIntList(null);
+        $repeated->setBytesList(null);
         $repeated->setStringList(null);
         $repeated->setNestedList(null);
 
         $this->assertNull($repeated->getIntList());
+        $this->assertNull($repeated->getBytesList());
         $this->assertNull($repeated->getStringList());
         $this->assertNull($repeated->getNestedList());
     }

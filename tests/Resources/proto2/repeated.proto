@@ -12,4 +12,5 @@ message Repeated {
   repeated int32 int      = 2;
   repeated Nested nested  = 3;
   repeated int32 packed   = 4 [packed=true];
+  repeated bytes bytes    = 5;
 }
