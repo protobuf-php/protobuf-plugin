@@ -35,7 +35,7 @@ class AccessorsTest extends TestCase
         $simple->setUint64(123456789123456789);
         $simple->setFixed64(123456789123456789);
         $simple->setSint64(-123456789123456789);
-        $simple->setBytes(Stream::create("bar"));
+        $simple->setBytes(Stream::wrap("bar"));
         $simple->setSfixed64(-123456789123456789);
 
         $this->assertSame(true, $simple->getBool());
