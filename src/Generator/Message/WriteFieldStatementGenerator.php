@@ -69,10 +69,20 @@ class WriteFieldStatementGenerator extends BaseGenerator
             return $body;
         }
 
-        if ($rule === Label::LABEL_REPEATED() && $type !== Type::TYPE_MESSAGE()) {
+        if ($type === Type::TYPE_MESSAGE() && $rule === Label::LABEL_REPEATED()) {
             $body[] = 'foreach (' . $variable . ' as $val) {';
             $body[] = '    $writer->writeVarint($stream, ' . $key . ');';
-            $body[] = '    ' . $this->generateWriteScalarStatement($type->value(), '$val') . ';';
+            $body[] = '    $writer->writeVarint($stream, $val->serializedSize($sizeContext));';
+            $body[] = '    $val->writeTo($context);';
+            $body[] = '}';
+
+            return $body;
+        }
+
+        if ($type === Type::TYPE_ENUM() && $rule === LABEL::LABEL_REPEATED()) {
+            $body[] = 'foreach (' . $variable . ' as $val) {';
+            $body[] = '    $writer->writeVarint($stream, ' . $key . ');';
+            $body[] = '    ' . $this->generateWriteScalarStatement($type->value(), '$val->value()') . ';';
             $body[] = '}';
 
             return $body;
@@ -81,8 +91,7 @@ class WriteFieldStatementGenerator extends BaseGenerator
         if ($rule === Label::LABEL_REPEATED()) {
             $body[] = 'foreach (' . $variable . ' as $val) {';
             $body[] = '    $writer->writeVarint($stream, ' . $key . ');';
-            $body[] = '    $writer->writeVarint($stream, $val->serializedSize($sizeContext));';
-            $body[] = '    $val->writeTo($context);';
+            $body[] = '    ' . $this->generateWriteScalarStatement($type->value(), '$val') . ';';
             $body[] = '}';
 
             return $body;

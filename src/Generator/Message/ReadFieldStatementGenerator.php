@@ -84,7 +84,7 @@ class ReadFieldStatementGenerator extends BaseGenerator
             $body[] = '$innerLimit = $stream->tell() + $innerSize;';
             $body[] = null;
             $body[] = 'if (' . $variable . ' === null) {';
-            $body[] = '    ' . $variable . ' = new \Protobuf\ScalarCollection();';
+            $body[] = '    ' . $variable . ' = new ' . $this->getCollectionClassName($field) . '();';
             $body[] = '}';
             $body[] = null;
             $body[] = 'while ($stream->tell() < $innerLimit) {';
@@ -109,6 +109,18 @@ class ReadFieldStatementGenerator extends BaseGenerator
             $body[] = '$context->setLength($innerSize);';
             $body[] = '$innerMessage->readFrom($context);';
             $body[] = '$context->setLength($length);';
+            $body[] = null;
+            $body[] = $breakSttm;
+
+            return $body;
+        }
+
+        if ($type === Type::TYPE_ENUM() && $rule === LABEL::LABEL_REPEATED()) {
+            $body[] = 'if (' . $variable . ' === null) {';
+            $body[] = '    ' . $variable . ' = new ' . $this->getCollectionClassName($field) . '();';
+            $body[] = '}';
+            $body[] = null;
+            $body[] = $variable . '->add(' . $reference . '::valueOf(' . $this->generateReadScalarStatement($type->value()) . '));';
             $body[] = null;
             $body[] = $breakSttm;
 
@@ -147,7 +159,7 @@ class ReadFieldStatementGenerator extends BaseGenerator
         }
 
         $body[] = 'if (' . $variable . ' === null) {';
-        $body[] = '    ' . $variable . ' = new \Protobuf\ScalarCollection();';
+        $body[] = '    ' . $variable . ' = new ' . $this->getCollectionClassName($field) . '();';
         $body[] = '}';
         $body[] = null;
         $body[] = $variable . '->add(' . $this->generateReadScalarStatement($type->value()) . ');';

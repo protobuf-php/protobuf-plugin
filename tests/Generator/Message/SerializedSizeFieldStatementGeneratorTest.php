@@ -121,4 +121,43 @@ CODE
 
         $this->assertEquals($expected, implode(PHP_EOL, $actual));
     }
+
+    public function testGenerateEnumRepeatedFieldSizeStatement()
+    {
+        $context = $this->createContext([
+            [
+                'name'    => 'simple.proto',
+                'package' => 'ProtobufCompilerTest.Protos',
+                'values'  => [
+                    'messages' => [
+                        [
+                            'name'   => 'Simple',
+                            'fields' => [
+                                1  => ['status', Field::TYPE_ENUM, Field::LABEL_REPEATED, 'ProtobufCompilerTest.Protos.Type']
+                            ]
+                        ],
+                        [
+                            'name'   => 'Type',
+                            'fields' => []
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+
+        $entity    = $context->getEntity('ProtobufCompilerTest.Protos.Simple');
+        $generator = new SerializedSizeFieldStatementGenerator($context);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
+
+        $actual   = $generator->generateFieldSizeStatement($entity, $field);
+        $expected = <<<'CODE'
+foreach ($this->status as $val) {
+    $size += 1;
+    $size += $calculator->computeVarintSize($val->value());
+}
+CODE;
+
+        $this->assertEquals($expected, implode(PHP_EOL, $actual));
+    }
 }

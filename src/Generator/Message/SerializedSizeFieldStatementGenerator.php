@@ -67,10 +67,22 @@ class SerializedSizeFieldStatementGenerator extends BaseGenerator
             return $body;
         }
 
-        if ($rule === Label::LABEL_REPEATED() && $type !== Type::TYPE_MESSAGE()) {
+        if ($type === Type::TYPE_MESSAGE() && $rule === Label::LABEL_REPEATED()) {
+            $body[] = 'foreach (' . $variable . ' as $val) {';
+            $body[] = '    $innerSize = $val->serializedSize($context);';
+            $body[] = null;
+            $body[] = '    $size += ' . $keySize . ';';
+            $body[] = '    $size += $innerSize;';
+            $body[] = '    $size += $calculator->computeVarintSize($innerSize);';
+            $body[] = '}';
+
+            return $body;
+        }
+
+        if ($type === Type::TYPE_ENUM() && $rule === Label::LABEL_REPEATED()) {
             $body[] = 'foreach (' . $variable . ' as $val) {';
             $body[] = '    $size += ' . $keySize . ';';
-            $body[] = '    $size += ' . $this->generateValueSizeStatement($type->value(), '$val') . ';';
+            $body[] = '    $size += ' . $this->generateValueSizeStatement($type->value(), '$val->value()') . ';';
             $body[] = '}';
 
             return $body;
@@ -78,11 +90,8 @@ class SerializedSizeFieldStatementGenerator extends BaseGenerator
 
         if ($rule === Label::LABEL_REPEATED()) {
             $body[] = 'foreach (' . $variable . ' as $val) {';
-            $body[] = '    $innerSize = $val->serializedSize($context);';
-            $body[] = null;
             $body[] = '    $size += ' . $keySize . ';';
-            $body[] = '    $size += $innerSize;';
-            $body[] = '    $size += $calculator->computeVarintSize($innerSize);';
+            $body[] = '    $size += ' . $this->generateValueSizeStatement($type->value(), '$val') . ';';
             $body[] = '}';
 
             return $body;

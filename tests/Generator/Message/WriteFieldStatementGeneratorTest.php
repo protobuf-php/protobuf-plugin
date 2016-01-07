@@ -145,6 +145,45 @@ CODE;
         $this->assertEquals($expected, implode(PHP_EOL, $actual));
     }
 
+    public function testGenerateWriteEnumRepeatedStatement()
+    {
+        $context = $this->createContext([
+            [
+                'name'    => 'simple.proto',
+                'package' => 'ProtobufCompilerTest.Protos',
+                'values'  => [
+                    'messages' => [
+                        [
+                            'name'   => 'Simple',
+                            'fields' => [
+                                1  => ['status', Field::TYPE_ENUM, Field::LABEL_REPEATED, 'ProtobufCompilerTest.Protos.Type']
+                            ]
+                        ],
+                        [
+                            'name'   => 'Type',
+                            'fields' => []
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+
+        $entity    = $context->getEntity('ProtobufCompilerTest.Protos.Simple');
+        $generator = new WriteFieldStatementGenerator($context);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
+
+        $actual   = $generator->generateFieldWriteStatement($entity, $field);
+        $expected = <<<'CODE'
+foreach ($this->status as $val) {
+    $writer->writeVarint($stream, 8);
+    $writer->writeVarint($stream, $val->value());
+}
+CODE;
+
+        $this->assertEquals($expected, implode(PHP_EOL, $actual));
+    }
+
     /**
      * @expectedException InvalidArgumentException
      * @expectedExceptionMessage Unknown field type : -123

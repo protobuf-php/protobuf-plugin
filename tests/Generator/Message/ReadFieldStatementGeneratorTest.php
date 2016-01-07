@@ -81,6 +81,77 @@ CODE;
         $this->assertEquals($expected, implode(PHP_EOL, $actual));
     }
 
+    public function testGenerateReadBytesRepeatedStatement()
+    {
+        $context = $this->createMessagesContext([
+            1  => ['lines', Field::TYPE_BYTES, Field::LABEL_REPEATED]
+        ]);
+
+        $generator = new ReadFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
+
+        $actual   = $this->invokeMethod($generator, 'generateFieldReadStatement', [$entity, $field]);
+        $expected = <<<'CODE'
+\Protobuf\WireFormat::assertWireType($wire, 12);
+
+if ($this->lines === null) {
+    $this->lines = new \Protobuf\StreamCollection();
+}
+
+$this->lines->add($reader->readByteStream($stream));
+
+continue;
+CODE;
+
+        $this->assertEquals($expected, implode(PHP_EOL, $actual));
+    }
+
+    public function testGenerateReadEnumRepeatedStatement()
+    {
+        $context = $this->createContext([
+            [
+                'name'    => 'simple.proto',
+                'package' => 'ProtobufCompilerTest.Protos',
+                'values'  => [
+                    'messages' => [
+                        [
+                            'name'   => 'Simple',
+                            'fields' => [
+                                1  => ['status', Field::TYPE_ENUM, Field::LABEL_REPEATED, 'ProtobufCompilerTest.Protos.Type']
+                            ]
+                        ],
+                        [
+                            'name'   => 'Type',
+                            'fields' => []
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+
+        $generator = new ReadFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
+
+        $actual   = $this->invokeMethod($generator, 'generateFieldReadStatement', [$entity, $field]);
+        $expected = <<<'CODE'
+\Protobuf\WireFormat::assertWireType($wire, 14);
+
+if ($this->status === null) {
+    $this->status = new \Protobuf\EnumCollection();
+}
+
+$this->status->add(\ProtobufCompilerTest\Protos\Type::valueOf($reader->readVarint($stream)));
+
+continue;
+CODE;
+
+        $this->assertEquals($expected, implode(PHP_EOL, $actual));
+    }
+
     public function testGenerateReadPackedInt32Statement()
     {
         $options = new FieldOptions();
