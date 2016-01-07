@@ -95,15 +95,31 @@ class FieldsGenerator extends BaseGenerator implements GeneratorVisitor
      */
     protected function generateSetterMethod(Entity $entity, FieldDescriptorProto $field)
     {
+        $body       = [];
         $fieldName  = $field->getName();
+        $fieldType  = $field->getType();
+        $fieldLabel = $field->getLabel();
+        $typeHint   = $this->getTypeHint($field);
+
+        if ($fieldType === Type::TYPE_BYTES() && $fieldLabel !== Label::LABEL_REPEATED()) {
+            $body[] = 'if ($value !== null && ! $value instanceof \Protobuf\Stream) {';
+            $body[] = '    $value = \Protobuf\Stream::wrap($value);';
+            $body[] = '}';
+            $body[] = null;
+
+            $typeHint = null;
+        }
+
+        $body[] = '$this->' . $fieldName . ' = $value;';
+
         $methodName = $this->getAccessorName('set', $field);
         $method     = MethodGenerator::fromArray([
             'name'       => $methodName,
-            'body'       => '$this->' . $fieldName . ' = $value;',
+            'body'       => implode(PHP_EOL, $body),
             'parameters' => [
                 [
                     'name'   => 'value',
-                    'type'   => $this->getTypeHint($field)
+                    'type'   => $typeHint
                 ]
             ],
             'docblock'   => [
@@ -119,17 +135,8 @@ class FieldsGenerator extends BaseGenerator implements GeneratorVisitor
 
         $method->getDocblock()->setWordWrap(false);
 
-        $fieldType  = $field->getType();
-        $fieldLabel = $field->getLabel();
-        $parameters = $method->getParameters();
-
         if ($fieldLabel !== Label::LABEL_REQUIRED()) {
-            $parameters['value']->setDefaultValue(null);
-        }
-
-        if ($fieldType === Type::TYPE_BYTES() && $fieldLabel !== Label::LABEL_REPEATED()) {
-            $parameters['value']->setType(null);
-            $method->setBody('$this->' . $fieldName . ' = \Protobuf\Stream::wrap($value);');
+            $method->getParameters()['value']->setDefaultValue(null);
         }
 
         return $method;

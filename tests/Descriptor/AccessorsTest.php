@@ -53,6 +53,38 @@ class AccessorsTest extends TestCase
         $this->assertSame(-123456789123456789, $simple->getSint64());
         $this->assertSame(-123456789123456789, $simple->getSfixed64());
         $this->assertInstanceOf('Protobuf\Stream', $simple->getBytes());
+
+        $simple->setBool(null);
+        $simple->setFloat(null);
+        $simple->setString(null);
+        $simple->setUint32(null);
+        $simple->setInt32(null);
+        $simple->setFixed32(null);
+        $simple->setSint32(null);
+        $simple->setSfixed32(null);
+        $simple->setDouble(null);
+        $simple->setInt64(null);
+        $simple->setUint64(null);
+        $simple->setFixed64(null);
+        $simple->setSint64(null);
+        $simple->setBytes(null);
+        $simple->setSfixed64(null);
+
+        $this->assertNull($simple->getBool());
+        $this->assertNull($simple->getString());
+        $this->assertNull($simple->getFloat());
+        $this->assertNull($simple->getUint32());
+        $this->assertNull($simple->getInt32());
+        $this->assertNull($simple->getFixed32());
+        $this->assertNull($simple->getSint32());
+        $this->assertNull($simple->getSfixed32());
+        $this->assertNull($simple->getDouble());
+        $this->assertNull($simple->getInt64());
+        $this->assertNull($simple->getUint64());
+        $this->assertNull($simple->getFixed64());
+        $this->assertNull($simple->getSint64());
+        $this->assertNull($simple->getSfixed64());
+        $this->assertNull($simple->getBytes());
     }
 
     public function testStreamSetterWrapsValue()

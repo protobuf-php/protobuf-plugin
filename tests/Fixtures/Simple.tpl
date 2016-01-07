@@ -525,7 +525,11 @@ class Simple extends \Protobuf\AbstractMessage
      */
     public function setBytes($value = null)
     {
-        $this->bytes = \Protobuf\Stream::wrap($value);
+        if ($value !== null && ! $value instanceof \Protobuf\Stream) {
+            $value = \Protobuf\Stream::wrap($value);
+        }
+
+        $this->bytes = $value;
     }
 
     /**
