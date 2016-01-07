@@ -213,7 +213,7 @@ class Person extends \Protobuf\AbstractMessage
      */
     public function addPhone(\ProtobufCompilerTest\Protos\PhoneNumber $value)
     {
-        if ( $this->phone === null) {
+        if ($this->phone === null) {
             $this->phone = new \Protobuf\MessageCollection();
         }
 

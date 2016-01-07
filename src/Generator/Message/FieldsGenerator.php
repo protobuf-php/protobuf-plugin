@@ -185,7 +185,7 @@ class FieldsGenerator extends BaseGenerator implements GeneratorVisitor
             ? $this->getDoctype($field)
             : null;
 
-        $lines[] = 'if ( $this->' . $fieldName . ' === null) {';
+        $lines[] = 'if ($this->' . $fieldName . ' === null) {';
         $lines[] = '    $this->' . $fieldName . ' = new ' . $collClass . '();';
         $lines[] = '}';
         $lines[] = null;

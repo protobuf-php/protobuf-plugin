@@ -22,6 +22,10 @@ class MessageDescriptorTest extends TestCase
 
     public function setUp()
     {
+        $this->markTestIncompleteIfProtoClassNotFound([
+            'ProtobufCompilerTest\Protos\AddressBook'
+        ]);
+
         parent::setUp();
 
         $this->reader = new SimpleAnnotationReader();

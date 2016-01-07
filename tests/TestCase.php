@@ -364,4 +364,21 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
 
         return $context;
     }
+
+    /**
+     * @param array $classes
+     */
+    protected function markTestIncompleteIfProtoClassNotFound(array $classes)
+    {
+        foreach ($classes as $class) {
+            if (class_exists($class)) {
+                continue;
+            }
+
+            $this->markTestIncomplete(sprintf(
+                'Class "%s" not found, please run : "make proto-generate" to generate protobuf classes.',
+                $class
+            ));
+        }
+    }
 }

@@ -18,6 +18,18 @@ use ProtobufCompilerTest\Protos\AddressBook;
  */
 class SerializedSizeTest extends TestCase
 {
+    protected function setUp()
+    {
+        $this->markTestIncompleteIfProtoClassNotFound([
+            'ProtobufCompilerTest\Protos\Simple',
+            'ProtobufCompilerTest\Protos\Person',
+            'ProtobufCompilerTest\Protos\Repeated',
+            'ProtobufCompilerTest\Protos\AddressBook'
+        ]);
+
+        parent::setUp();
+    }
+
     public function testSimpleSerializedSize()
     {
         $simple     = new Simple();

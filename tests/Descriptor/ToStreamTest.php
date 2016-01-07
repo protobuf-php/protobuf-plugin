@@ -14,6 +14,15 @@ use ProtobufCompilerTest\Protos\AddressBook;
  */
 class ToStreamTest extends TestCase
 {
+    protected function setUp()
+    {
+        $this->markTestIncompleteIfProtoClassNotFound([
+            'ProtobufCompilerTest\Protos\AddressBook'
+        ]);
+
+        parent::setUp();
+    }
+
     public function testAddressBookToStream()
     {
         $config  = $this->getMock(Configuration::CLASS);
