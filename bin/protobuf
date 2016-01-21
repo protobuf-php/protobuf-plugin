@@ -1,4 +1,4 @@
-#!/usr/bin/env php
+#!/usr/bin/env hhvm
 <?php
 
 ini_set('display_errors', 1);
