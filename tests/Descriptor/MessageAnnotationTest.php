@@ -22,9 +22,7 @@ class MessageDescriptorTest extends TestCase
 
     public function setUp()
     {
-        $this->markTestIncompleteIfProtoClassNotFound([
-            'ProtobufCompilerTest\Protos\AddressBook'
-        ]);
+        $this->markTestIncompleteIfProtoClassNotFound();
 
         parent::setUp();
 

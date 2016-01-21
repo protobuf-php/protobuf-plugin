@@ -51,12 +51,14 @@ class Compiler
     public function compile(Stream $stream)
     {
         // Parse the request
-        $request   = CodeGeneratorRequest::fromStream($stream, $this->config);
-        $response  = new CodeGeneratorResponse();
-        $context   = $this->createContext($request);
-        $entities  = $context->getEntities();
-        $options   = $context->getOptions();
-        $generator = new Generator($context);
+        $request    = CodeGeneratorRequest::fromStream($stream, $this->config);
+        $tempname   = tempnam(sys_get_temp_dir(), 'proto') . '.php';
+        $response   = new CodeGeneratorResponse();
+        $context    = $this->createContext($request);
+        $entities   = $context->getEntities();
+        $options    = $context->getOptions();
+        $generator  = new Generator($context);
+        $regenerate = false;
 
         // Run each entity
         foreach ($entities as $key => $entity) {
@@ -75,13 +77,50 @@ class Compiler
             $generator->visit($entity);
 
             $file    = new File();
+            $type    = $entity->getType();
             $path    = $entity->getPath();
             $content = $entity->getContent();
+            $class   = $entity->getNamespacedName();
+
+            if ( ! class_exists($class) && ! interface_exists($class)) {
+
+                $this->logger->info(sprintf('Loading class "%s"', $class));
+
+                file_put_contents($tempname, $content);
+
+                require $tempname;
+
+                if ($type === Entity::TYPE_EXTENSION) {
+
+                    $this->logger->info(sprintf('Registering extension "%s"', $class));
+
+                    $config   = $this->config;
+                    $registry = $config->getExtensionRegistry();
+
+                    $class::registerAllExtensions($registry);
+
+                    $regenerate = true;
+                }
+            }
 
             $file->setName($path);
             $file->setContent($content);
 
             $response->addFile($file);
+        }
+
+        if (is_file($tempname)) {
+            @unlink($tempname);
+        }
+
+        if ($regenerate) {
+
+            $this->logger->info('Regenerating classes with new extensions');
+
+            $stream->seek(0);
+
+            // Renegerate classes with new extensions
+            return $this->compile($stream);
         }
 
         $this->logger->info('Generation completed.');

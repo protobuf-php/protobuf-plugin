@@ -19,11 +19,7 @@ class ClearTest extends TestCase
 {
     protected function setUp()
     {
-        $this->markTestIncompleteIfProtoClassNotFound([
-            'ProtobufCompilerTest\Protos\Simple',
-            'ProtobufCompilerTest\Protos\Person\PhoneType',
-            'ProtobufCompilerTest\Protos\Person\PhoneNumber'
-        ]);
+        $this->markTestIncompleteIfProtoClassNotFound();
 
         parent::setUp();
     }

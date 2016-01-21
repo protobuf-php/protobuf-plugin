@@ -179,6 +179,21 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
     /**
      * {@inheritdoc}
      */
+    public static function fromArray(array $values)
+    {
+        $message = new self();
+        $values  = array_merge([
+            'bones_buried' => null
+        ], $values);
+
+        $message->setBonesBuried($values['bones_buried']);
+
+        return $message;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function toStream(\Protobuf\Configuration $configuration = null)
     {
         $config  = $configuration ?: \Protobuf\Configuration::getInstance();

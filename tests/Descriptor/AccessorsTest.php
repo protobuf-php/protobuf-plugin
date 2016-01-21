@@ -11,6 +11,8 @@ use ProtobufCompilerTest\TestCase;
 use ProtobufCompilerTest\Protos\Simple;
 use ProtobufCompilerTest\Protos\Person;
 use ProtobufCompilerTest\Protos\Repeated;
+use ProtobufCompilerTest\Protos\Person\PhoneType;
+use ProtobufCompilerTest\Protos\Person\PhoneNumber;
 use ProtobufCompilerTest\Protos\AddressBook;
 
 /**
@@ -20,12 +22,7 @@ class AccessorsTest extends TestCase
 {
     protected function setUp()
     {
-        $this->markTestIncompleteIfProtoClassNotFound([
-            'ProtobufCompilerTest\Protos\Simple',
-            'ProtobufCompilerTest\Protos\Person',
-            'ProtobufCompilerTest\Protos\Repeated',
-            'ProtobufCompilerTest\Protos\AddressBook'
-        ]);
+        $this->markTestIncompleteIfProtoClassNotFound();
 
         parent::setUp();
     }
@@ -97,6 +94,156 @@ class AccessorsTest extends TestCase
         $this->assertNull($simple->getSint64());
         $this->assertNull($simple->getSfixed64());
         $this->assertNull($simple->getBytes());
+    }
+
+    public function testSimpleMessageFromArray()
+    {
+        $simple = Simple::fromArray([
+            'bool'      => true,
+            'string'    => "foo",
+            'bytes'     => "bar",
+            'float'     => 12345.123,
+            'fixed32'   => 123456789,
+            'uint32'    => 123456789,
+            'sfixed32'  => -123456789,
+            'sint32'    => -123456789,
+            'int32'     => -123456789,
+            'double'    => 123456789.12345,
+            'int64'     => -123456789123456789,
+            'uint64'    => 123456789123456789,
+            'fixed64'   => 123456789123456789,
+            'sfixed64'  => -123456789123456789,
+            'sint64'    => -123456789123456789
+        ]);
+
+        $this->assertSame(true, $simple->getBool());
+        $this->assertSame("foo", $simple->getString());
+        $this->assertSame(12345.123, $simple->getFloat());
+        $this->assertSame(123456789, $simple->getUint32());
+        $this->assertSame(-123456789, $simple->getInt32());
+        $this->assertSame(123456789, $simple->getFixed32());
+        $this->assertSame(-123456789, $simple->getSint32());
+        $this->assertSame(-123456789, $simple->getSfixed32());
+        $this->assertSame(123456789.12345, $simple->getDouble());
+        $this->assertSame(-123456789123456789, $simple->getInt64());
+        $this->assertSame(123456789123456789, $simple->getUint64());
+        $this->assertSame(123456789123456789, $simple->getFixed64());
+        $this->assertSame(-123456789123456789, $simple->getSint64());
+        $this->assertSame(-123456789123456789, $simple->getSfixed64());
+        $this->assertInstanceOf('Protobuf\Stream', $simple->getBytes());
+
+        $simple = Simple::fromArray([]);
+
+        $this->assertNull($simple->getBool());
+        $this->assertNull($simple->getString());
+        $this->assertNull($simple->getFloat());
+        $this->assertNull($simple->getUint32());
+        $this->assertNull($simple->getInt32());
+        $this->assertNull($simple->getFixed32());
+        $this->assertNull($simple->getSint32());
+        $this->assertNull($simple->getSfixed32());
+        $this->assertNull($simple->getDouble());
+        $this->assertNull($simple->getInt64());
+        $this->assertNull($simple->getUint64());
+        $this->assertNull($simple->getFixed64());
+        $this->assertNull($simple->getSint64());
+        $this->assertNull($simple->getSfixed64());
+        $this->assertNull($simple->getBytes());
+    }
+
+    public function testComplexMessageFromArray()
+    {
+        $phone1  = PhoneNumber::fromArray([
+            'number' => '1231231212',
+            'type'   => PhoneType::HOME()
+        ]);
+
+        $phone2  = PhoneNumber::fromArray([
+            'number' => '55512321312',
+            'type'   => PhoneType::MOBILE()
+        ]);
+
+        $phone3  = PhoneNumber::fromArray([
+            'number' => '3493123123',
+            'type'   => PhoneType::WORK()
+        ]);
+
+        $person1  = Person::fromArray([
+            'id'    => 2051,
+            'name'  => 'John Doe',
+            'email' => 'john.doe@gmail.com',
+            'phone' => [$phone1, $phone2]
+        ]);
+
+        $person2  = Person::fromArray([
+            'id'    => 23,
+            'name'  => 'Iván Montes',
+            'email' => 'drslump@pollinimini.net',
+            'phone' => [$phone3]
+        ]);
+
+        $book = AddressBook::fromArray([
+            'person' => [$person1, $person2]
+        ]);
+
+        $this->assertInstanceOf(AddressBook::CLASS, $book);
+        $this->assertCount(2, $book->getPersonList());
+
+        $p1 = $book->getPersonList()[0];
+        $p2 = $book->getPersonList()[1];
+
+        $this->assertSame($person1, $p1);
+        $this->assertSame($person2, $p2);
+
+        $this->assertEquals($p1->getId(), 2051);
+        $this->assertEquals($p1->getName(), 'John Doe');
+
+        $this->assertEquals($p2->getId(), 23);
+        $this->assertEquals($p2->getName(), 'Iván Montes');
+
+        $this->assertCount(2, $p1->getPhoneList());
+        $this->assertCount(1, $p2->getPhoneList());
+
+        $this->assertEquals($p1->getPhoneList()[0]->getNumber(), '1231231212');
+        $this->assertEquals($p1->getPhoneList()[0]->getType(), PhoneType::HOME());
+
+        $this->assertEquals($p1->getPhoneList()[1]->getNumber(), '55512321312');
+        $this->assertEquals($p1->getPhoneList()[1]->getType(), PhoneType::MOBILE());
+
+        $this->assertEquals($p2->getPhoneList()[0]->getNumber(), '3493123123');
+        $this->assertEquals($p2->getPhoneList()[0]->getType(), PhoneType::WORK());
+    }
+
+    public function testComplexMessageFromArrayDefaults()
+    {
+        $phone = PhoneNumber::fromArray([
+            'number' => '1231231212'
+        ]);
+
+        $this->assertEquals($phone->getNumber(), '1231231212');
+        $this->assertEquals($phone->getType(), PhoneType::HOME());
+    }
+
+    public function testComplexMessageFromArrayRequired()
+    {
+        $person = Person::fromArray([
+            'id'    => 2051,
+            'name'  => 'John Doe'
+        ]);
+
+        $this->assertEquals($person->getId(), 2051);
+        $this->assertEquals($person->getName(), 'John Doe');
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage Field "name" (tag 1) is required but has no value.
+     */
+    public function testComplexMessageFromArrayRequiredException()
+    {
+        Person::fromArray([
+            'id' => 2051
+        ]);
     }
 
     public function testStreamSetterWrapsValue()

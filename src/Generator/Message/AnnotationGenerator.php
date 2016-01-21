@@ -139,4 +139,17 @@ class AnnotationGenerator extends BaseGenerator implements GeneratorVisitor
 
         return $lines;
     }
+
+    /*
+
+    $opt  = $msg->getOptions();
+        $ext  = $opt->extensions();
+
+        for ($ext->rewind(); $ext->valid(); $ext->next()) {
+            $extension = $ext->current();
+            $value     = $ext->getInfo();
+
+            var_dump($extension->getName(), $value);
+        }
+    */
 }

@@ -251,6 +251,36 @@ class Person extends \Protobuf\AbstractMessage
     /**
      * {@inheritdoc}
      */
+    public static function fromArray(array $values)
+    {
+        if ( ! isset($values['name'])) {
+            throw new \InvalidArgumentException('Field "name" (tag 1) is required but has no value.');
+        }
+
+        if ( ! isset($values['id'])) {
+            throw new \InvalidArgumentException('Field "id" (tag 2) is required but has no value.');
+        }
+
+        $message = new self();
+        $values  = array_merge([
+            'email' => null,
+            'phone' => []
+        ], $values);
+
+        $message->setName($values['name']);
+        $message->setId($values['id']);
+        $message->setEmail($values['email']);
+
+        foreach ($values['phone'] as $item) {
+            $message->addPhone($item);
+        }
+
+        return $message;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function toStream(\Protobuf\Configuration $configuration = null)
     {
         $config  = $configuration ?: \Protobuf\Configuration::getInstance();

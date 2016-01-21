@@ -162,6 +162,26 @@ class PhoneNumber extends \Protobuf\AbstractMessage
     /**
      * {@inheritdoc}
      */
+    public static function fromArray(array $values)
+    {
+        if ( ! isset($values['number'])) {
+            throw new \InvalidArgumentException('Field "number" (tag 1) is required but has no value.');
+        }
+
+        $message = new self();
+        $values  = array_merge([
+            'type' => \ProtobufCompilerTest\Protos\PhoneType::HOME()
+        ], $values);
+
+        $message->setNumber($values['number']);
+        $message->setType($values['type']);
+
+        return $message;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function toStream(\Protobuf\Configuration $configuration = null)
     {
         $config  = $configuration ?: \Protobuf\Configuration::getInstance();

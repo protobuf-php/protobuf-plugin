@@ -172,23 +172,20 @@ class ExtensionGenerator extends BaseGenerator implements EntityVisitor
             }
         }
 
-        foreach ($extensions as $field) {
-            $fields[] = $field;
-        }
-
         foreach ($fields as $field) {
             $type  = $field->getTypeName();
             $name  = $this->getCamelizedName($field);
 
-            if ( ! $type) {
-                $lines[] = '$registry->add(self::' . $name . '());';
-
-                continue;
-            }
-
             $ref     = $this->getEntity($type);
             $class   = $ref->getNamespacedName();
             $lines[] = '$registry->add(' . $class . '::' . $name. '());';
+        }
+
+        foreach ($extensions as $field) {
+            $type  = $field->getTypeName();
+            $name  = $this->getCamelizedName($field);
+
+            $lines[] = '$registry->add(self::' . $name . '());';
         }
 
         $body       = implode(PHP_EOL, $lines);

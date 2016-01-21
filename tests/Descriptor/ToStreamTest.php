@@ -16,9 +16,7 @@ class ToStreamTest extends TestCase
 {
     protected function setUp()
     {
-        $this->markTestIncompleteIfProtoClassNotFound([
-            'ProtobufCompilerTest\Protos\AddressBook'
-        ]);
+        $this->markTestIncompleteIfProtoClassNotFound();
 
         parent::setUp();
     }

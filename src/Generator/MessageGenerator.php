@@ -13,6 +13,7 @@ use Protobuf\Compiler\Generator\Message\WriteToGenerator;
 use Protobuf\Compiler\Generator\Message\ReadFromGenerator;
 use Protobuf\Compiler\Generator\Message\ToStreamGenerator;
 use Protobuf\Compiler\Generator\Message\ConstructGenerator;
+use Protobuf\Compiler\Generator\Message\FromArrayGenerator;
 use Protobuf\Compiler\Generator\Message\FromStreamGenerator;
 use Protobuf\Compiler\Generator\Message\AnnotationGenerator;
 use Protobuf\Compiler\Generator\Message\ExtensionsGenerator;
@@ -43,6 +44,7 @@ class MessageGenerator extends BaseGenerator implements EntityVisitor
             new FieldsGenerator($context),
             new ExtensionsGenerator($context),
             new FromStreamGenerator($context),
+            new FromArrayGenerator($context),
             new ToStreamGenerator($context),
             new WriteToGenerator($context),
             new ReadFromGenerator($context),

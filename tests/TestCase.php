@@ -25,6 +25,16 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      */
     protected $config;
 
+    /**
+     * @var array
+     */
+    protected $protoClasses = [
+        'ProtobufCompilerTest\Protos\Simple',
+        'ProtobufCompilerTest\Protos\Person',
+        'ProtobufCompilerTest\Protos\Repeated',
+        'ProtobufCompilerTest\Protos\AddressBook'
+    ];
+
     protected function setUp()
     {
         $this->config = new Configuration();
@@ -365,12 +375,9 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         return $context;
     }
 
-    /**
-     * @param array $classes
-     */
-    protected function markTestIncompleteIfProtoClassNotFound(array $classes)
+    protected function markTestIncompleteIfProtoClassNotFound()
     {
-        foreach ($classes as $class) {
+        foreach ($this->protoClasses as $class) {
             if (class_exists($class)) {
                 continue;
             }

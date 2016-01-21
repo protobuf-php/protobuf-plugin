@@ -20,12 +20,7 @@ class SerializedSizeTest extends TestCase
 {
     protected function setUp()
     {
-        $this->markTestIncompleteIfProtoClassNotFound([
-            'ProtobufCompilerTest\Protos\Simple',
-            'ProtobufCompilerTest\Protos\Person',
-            'ProtobufCompilerTest\Protos\Repeated',
-            'ProtobufCompilerTest\Protos\AddressBook'
-        ]);
+        $this->markTestIncompleteIfProtoClassNotFound();
 
         parent::setUp();
     }

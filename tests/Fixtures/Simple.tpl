@@ -713,6 +713,49 @@ class Simple extends \Protobuf\AbstractMessage
     /**
      * {@inheritdoc}
      */
+    public static function fromArray(array $values)
+    {
+        $message = new self();
+        $values  = array_merge([
+            'double' => null,
+            'float' => null,
+            'int64' => null,
+            'uint64' => null,
+            'int32' => null,
+            'fixed64' => null,
+            'fixed32' => null,
+            'bool' => null,
+            'string' => null,
+            'bytes' => null,
+            'uint32' => null,
+            'sfixed32' => null,
+            'sfixed64' => null,
+            'sint32' => null,
+            'sint64' => null
+        ], $values);
+
+        $message->setDouble($values['double']);
+        $message->setFloat($values['float']);
+        $message->setInt64($values['int64']);
+        $message->setUint64($values['uint64']);
+        $message->setInt32($values['int32']);
+        $message->setFixed64($values['fixed64']);
+        $message->setFixed32($values['fixed32']);
+        $message->setBool($values['bool']);
+        $message->setString($values['string']);
+        $message->setBytes($values['bytes']);
+        $message->setUint32($values['uint32']);
+        $message->setSfixed32($values['sfixed32']);
+        $message->setSfixed64($values['sfixed64']);
+        $message->setSint32($values['sint32']);
+        $message->setSint64($values['sint64']);
+
+        return $message;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function toStream(\Protobuf\Configuration $configuration = null)
     {
         $config  = $configuration ?: \Protobuf\Configuration::getInstance();
