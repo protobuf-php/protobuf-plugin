@@ -80,7 +80,7 @@ class Compiler
             $type    = $entity->getType();
             $path    = $entity->getPath();
             $content = $entity->getContent();
-            $class   = trim($entity->getNamespacedName(), '\\');
+            $class   = $entity->getNamespacedName();
 
             if ( ! class_exists($class) && ! interface_exists($class)) {
 
@@ -88,11 +88,9 @@ class Compiler
 
                 file_put_contents($tempname, $content);
 
-                include $tempname;
+                require $tempname;
 
                 if ($type === Entity::TYPE_EXTENSION) {
-
-                    echo $class . PHP_EOL;
 
                     $this->logger->info(sprintf('Registering extension "%s"', $class));
 
