@@ -52,7 +52,6 @@ class Compiler
     {
         // Parse the request
         $request    = CodeGeneratorRequest::fromStream($stream, $this->config);
-        $tempname   = tempnam(sys_get_temp_dir(), 'proto') . '.php';
         $response   = new CodeGeneratorResponse();
         $context    = $this->createContext($request);
         $entities   = $context->getEntities();
@@ -86,9 +85,12 @@ class Compiler
 
                 $this->logger->info(sprintf('Loading class "%s"', $class));
 
+                $tempname = tempnam(sys_get_temp_dir(), 'proto') . '.php';
+
                 file_put_contents($tempname, $content);
 
-                require $tempname;
+                include($tempname);
+                @unlink($tempname);
 
                 if ($type === Entity::TYPE_EXTENSION) {
 
@@ -107,10 +109,6 @@ class Compiler
             $file->setContent($content);
 
             $response->addFile($file);
-        }
-
-        if (is_file($tempname)) {
-            @unlink($tempname);
         }
 
         if ($regenerate) {
