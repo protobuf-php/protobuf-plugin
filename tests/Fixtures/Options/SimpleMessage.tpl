@@ -10,15 +10,6 @@ namespace ProtobufCompilerTest\Protos\Options;
 
 /**
  * Protobuf message : ProtobufCompilerTest.Protos.SimpleMessage
- *
- * @\Protobuf\Annotation\Descriptor(
- *   name="SimpleMessage",
- *   package="ProtobufCompilerTest.Protos",
- *   fields={
- *   },
- *   extensions={
- *   }
- * )
  */
 class SimpleMessage extends \Protobuf\AbstractMessage
 {
@@ -71,6 +62,16 @@ class SimpleMessage extends \Protobuf\AbstractMessage
         ], $values);
 
         return $message;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function descriptor()
+    {
+        return \google\protobuf\DescriptorProto::fromArray([
+            'name'      => 'SimpleMessage',
+        ]);
     }
 
     /**

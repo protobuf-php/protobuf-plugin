@@ -328,6 +328,33 @@ class BaseGenerator
     }
 
     /**
+     * @param array   $values
+     * @param integer $level
+     * @param string  $indentation
+     *
+     * @return string[]
+     */
+    protected function generateArrayLines(array $values, $level = 1, $indentation = '    ')
+    {
+        $index = 0;
+        $lines = [];
+        $count = count($values);
+
+        foreach ($values as $key => $value) {
+            $index  = $index + 1;
+            $comma  = ($index < $count) ? ',' : '';
+
+            $lines[] = "'$key' => " . $value . $comma;
+        }
+
+        if ($level === 0) {
+            return $lines;
+        }
+
+        return $this->addIndentation($lines, $level, $indentation);
+    }
+
+    /**
      * compute value size
      *
      * @param string  $type

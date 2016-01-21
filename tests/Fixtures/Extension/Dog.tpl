@@ -10,30 +10,6 @@ namespace ProtobufCompilerTest\Protos\Extension;
 
 /**
  * Protobuf message : ProtobufCompilerTest.Protos.Extension.Dog
- *
- * @\Protobuf\Annotation\Descriptor(
- *   name="Dog",
- *   package="ProtobufCompilerTest.Protos.Extension",
- *   fields={
- *     @\Protobuf\Annotation\Field(
- *       name="bones_buried",
- *       tag=1,
- *       type=5,
- *       label=1,
- *       reference="ProtobufCompilerTest.Protos.Extension.Dog"
- *     )
- *   },
- *   extensions={
- *     @\Protobuf\Annotation\Field(
- *       name="animal",
- *       tag=101,
- *       type=11,
- *       label=1,
- *       reference="ProtobufCompilerTest.Protos.Extension.Dog",
- *       extendee="ProtobufCompilerTest.Protos.Extension.Animal"
- *     )
- *   }
- * )
  */
 class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
 {
@@ -189,6 +165,35 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
         $message->setBonesBuried($values['bones_buried']);
 
         return $message;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function descriptor()
+    {
+        return \google\protobuf\DescriptorProto::fromArray([
+            'name'      => 'Dog',
+            'field'     => [
+                \google\protobuf\FieldDescriptorProto::fromArray([
+                    'number' => 1,
+                    'name' => 'bones_buried',
+                    'type' => \google\protobuf\FieldDescriptorProto\Type::TYPE_INT32(),
+                    'label' => \google\protobuf\FieldDescriptorProto\Label::LABEL_OPTIONAL(),
+                    'type_name' => '.ProtobufCompilerTest.Protos.Extension.Dog'
+                ]),
+            ],
+            'extension' => [
+                \google\protobuf\FieldDescriptorProto::fromArray([
+                    'number' => 101,
+                    'name' => 'animal',
+                    'type' => \google\protobuf\FieldDescriptorProto\Type::TYPE_MESSAGE(),
+                    'label' => \google\protobuf\FieldDescriptorProto\Label::LABEL_OPTIONAL(),
+                    'extendee' => '.ProtobufCompilerTest.Protos.Extension.Animal',
+                    'type_name' => '.ProtobufCompilerTest.Protos.Extension.Dog'
+                ]),
+            ],
+        ]);
     }
 
     /**

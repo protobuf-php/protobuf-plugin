@@ -10,105 +10,6 @@ namespace ProtobufCompilerTest\Protos;
 
 /**
  * Protobuf message : ProtobufCompilerTest.Protos.Simple
- *
- * @\Protobuf\Annotation\Descriptor(
- *   name="Simple",
- *   package="ProtobufCompilerTest.Protos",
- *   fields={
- *     @\Protobuf\Annotation\Field(
- *       name="double",
- *       tag=1,
- *       type=1,
- *       label=1
- *     ),
- *     @\Protobuf\Annotation\Field(
- *       name="float",
- *       tag=2,
- *       type=2,
- *       label=1
- *     ),
- *     @\Protobuf\Annotation\Field(
- *       name="int64",
- *       tag=3,
- *       type=3,
- *       label=1
- *     ),
- *     @\Protobuf\Annotation\Field(
- *       name="uint64",
- *       tag=4,
- *       type=4,
- *       label=1
- *     ),
- *     @\Protobuf\Annotation\Field(
- *       name="int32",
- *       tag=5,
- *       type=5,
- *       label=1
- *     ),
- *     @\Protobuf\Annotation\Field(
- *       name="fixed64",
- *       tag=6,
- *       type=6,
- *       label=1
- *     ),
- *     @\Protobuf\Annotation\Field(
- *       name="fixed32",
- *       tag=7,
- *       type=7,
- *       label=1
- *     ),
- *     @\Protobuf\Annotation\Field(
- *       name="bool",
- *       tag=8,
- *       type=8,
- *       label=1
- *     ),
- *     @\Protobuf\Annotation\Field(
- *       name="string",
- *       tag=9,
- *       type=9,
- *       label=1
- *     ),
- *     @\Protobuf\Annotation\Field(
- *       name="bytes",
- *       tag=12,
- *       type=12,
- *       label=1
- *     ),
- *     @\Protobuf\Annotation\Field(
- *       name="uint32",
- *       tag=13,
- *       type=13,
- *       label=1
- *     ),
- *     @\Protobuf\Annotation\Field(
- *       name="sfixed32",
- *       tag=15,
- *       type=15,
- *       label=1
- *     ),
- *     @\Protobuf\Annotation\Field(
- *       name="sfixed64",
- *       tag=16,
- *       type=16,
- *       label=1
- *     ),
- *     @\Protobuf\Annotation\Field(
- *       name="sint32",
- *       tag=17,
- *       type=17,
- *       label=1
- *     ),
- *     @\Protobuf\Annotation\Field(
- *       name="sint64",
- *       tag=18,
- *       type=18,
- *       label=1
- *     )
- *   },
- *   extensions={
- *   }
- * )
  */
 class Simple extends \Protobuf\AbstractMessage
 {
@@ -751,6 +652,108 @@ class Simple extends \Protobuf\AbstractMessage
         $message->setSint64($values['sint64']);
 
         return $message;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function descriptor()
+    {
+        return \google\protobuf\DescriptorProto::fromArray([
+            'name'      => 'Simple',
+            'field'     => [
+                \google\protobuf\FieldDescriptorProto::fromArray([
+                    'number' => 1,
+                    'name' => 'double',
+                    'type' => \google\protobuf\FieldDescriptorProto\Type::TYPE_DOUBLE(),
+                    'label' => \google\protobuf\FieldDescriptorProto\Label::LABEL_OPTIONAL()
+                ]),
+                \google\protobuf\FieldDescriptorProto::fromArray([
+                    'number' => 2,
+                    'name' => 'float',
+                    'type' => \google\protobuf\FieldDescriptorProto\Type::TYPE_FLOAT(),
+                    'label' => \google\protobuf\FieldDescriptorProto\Label::LABEL_OPTIONAL()
+                ]),
+                \google\protobuf\FieldDescriptorProto::fromArray([
+                    'number' => 3,
+                    'name' => 'int64',
+                    'type' => \google\protobuf\FieldDescriptorProto\Type::TYPE_INT64(),
+                    'label' => \google\protobuf\FieldDescriptorProto\Label::LABEL_OPTIONAL()
+                ]),
+                \google\protobuf\FieldDescriptorProto::fromArray([
+                    'number' => 4,
+                    'name' => 'uint64',
+                    'type' => \google\protobuf\FieldDescriptorProto\Type::TYPE_UINT64(),
+                    'label' => \google\protobuf\FieldDescriptorProto\Label::LABEL_OPTIONAL()
+                ]),
+                \google\protobuf\FieldDescriptorProto::fromArray([
+                    'number' => 5,
+                    'name' => 'int32',
+                    'type' => \google\protobuf\FieldDescriptorProto\Type::TYPE_INT32(),
+                    'label' => \google\protobuf\FieldDescriptorProto\Label::LABEL_OPTIONAL()
+                ]),
+                \google\protobuf\FieldDescriptorProto::fromArray([
+                    'number' => 6,
+                    'name' => 'fixed64',
+                    'type' => \google\protobuf\FieldDescriptorProto\Type::TYPE_FIXED64(),
+                    'label' => \google\protobuf\FieldDescriptorProto\Label::LABEL_OPTIONAL()
+                ]),
+                \google\protobuf\FieldDescriptorProto::fromArray([
+                    'number' => 7,
+                    'name' => 'fixed32',
+                    'type' => \google\protobuf\FieldDescriptorProto\Type::TYPE_FIXED32(),
+                    'label' => \google\protobuf\FieldDescriptorProto\Label::LABEL_OPTIONAL()
+                ]),
+                \google\protobuf\FieldDescriptorProto::fromArray([
+                    'number' => 8,
+                    'name' => 'bool',
+                    'type' => \google\protobuf\FieldDescriptorProto\Type::TYPE_BOOL(),
+                    'label' => \google\protobuf\FieldDescriptorProto\Label::LABEL_OPTIONAL()
+                ]),
+                \google\protobuf\FieldDescriptorProto::fromArray([
+                    'number' => 9,
+                    'name' => 'string',
+                    'type' => \google\protobuf\FieldDescriptorProto\Type::TYPE_STRING(),
+                    'label' => \google\protobuf\FieldDescriptorProto\Label::LABEL_OPTIONAL()
+                ]),
+                \google\protobuf\FieldDescriptorProto::fromArray([
+                    'number' => 12,
+                    'name' => 'bytes',
+                    'type' => \google\protobuf\FieldDescriptorProto\Type::TYPE_BYTES(),
+                    'label' => \google\protobuf\FieldDescriptorProto\Label::LABEL_OPTIONAL()
+                ]),
+                \google\protobuf\FieldDescriptorProto::fromArray([
+                    'number' => 13,
+                    'name' => 'uint32',
+                    'type' => \google\protobuf\FieldDescriptorProto\Type::TYPE_UINT32(),
+                    'label' => \google\protobuf\FieldDescriptorProto\Label::LABEL_OPTIONAL()
+                ]),
+                \google\protobuf\FieldDescriptorProto::fromArray([
+                    'number' => 15,
+                    'name' => 'sfixed32',
+                    'type' => \google\protobuf\FieldDescriptorProto\Type::TYPE_SFIXED32(),
+                    'label' => \google\protobuf\FieldDescriptorProto\Label::LABEL_OPTIONAL()
+                ]),
+                \google\protobuf\FieldDescriptorProto::fromArray([
+                    'number' => 16,
+                    'name' => 'sfixed64',
+                    'type' => \google\protobuf\FieldDescriptorProto\Type::TYPE_SFIXED64(),
+                    'label' => \google\protobuf\FieldDescriptorProto\Label::LABEL_OPTIONAL()
+                ]),
+                \google\protobuf\FieldDescriptorProto::fromArray([
+                    'number' => 17,
+                    'name' => 'sint32',
+                    'type' => \google\protobuf\FieldDescriptorProto\Type::TYPE_SINT32(),
+                    'label' => \google\protobuf\FieldDescriptorProto\Label::LABEL_OPTIONAL()
+                ]),
+                \google\protobuf\FieldDescriptorProto::fromArray([
+                    'number' => 18,
+                    'name' => 'sint64',
+                    'type' => \google\protobuf\FieldDescriptorProto\Type::TYPE_SINT64(),
+                    'label' => \google\protobuf\FieldDescriptorProto\Label::LABEL_OPTIONAL()
+                ]),
+            ],
+        ]);
     }
 
     /**

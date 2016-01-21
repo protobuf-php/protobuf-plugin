@@ -10,29 +10,6 @@ namespace ProtobufCompilerTest\Protos;
 
 /**
  * Protobuf message : ProtobufCompilerTest.Protos.PhoneNumber
- *
- * @\Protobuf\Annotation\Descriptor(
- *   name="PhoneNumber",
- *   package="ProtobufCompilerTest.Protos",
- *   fields={
- *     @\Protobuf\Annotation\Field(
- *       name="number",
- *       tag=1,
- *       type=9,
- *       label=2
- *     ),
- *     @\Protobuf\Annotation\Field(
- *       name="type",
- *       tag=2,
- *       type=14,
- *       label=1,
- *       default="HOME",
- *       reference="ProtobufCompilerTest.Protos.PhoneType"
- *     )
- *   },
- *   extensions={
- *   }
- * )
  */
 class PhoneNumber extends \Protobuf\AbstractMessage
 {
@@ -177,6 +154,32 @@ class PhoneNumber extends \Protobuf\AbstractMessage
         $message->setType($values['type']);
 
         return $message;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function descriptor()
+    {
+        return \google\protobuf\DescriptorProto::fromArray([
+            'name'      => 'PhoneNumber',
+            'field'     => [
+                \google\protobuf\FieldDescriptorProto::fromArray([
+                    'number' => 1,
+                    'name' => 'number',
+                    'type' => \google\protobuf\FieldDescriptorProto\Type::TYPE_STRING(),
+                    'label' => \google\protobuf\FieldDescriptorProto\Label::LABEL_REQUIRED()
+                ]),
+                \google\protobuf\FieldDescriptorProto::fromArray([
+                    'number' => 2,
+                    'name' => 'type',
+                    'type' => \google\protobuf\FieldDescriptorProto\Type::TYPE_ENUM(),
+                    'label' => \google\protobuf\FieldDescriptorProto\Label::LABEL_OPTIONAL(),
+                    'type_name' => '.ProtobufCompilerTest.Protos.PhoneType',
+                    'default_value' => \ProtobufCompilerTest\Protos\PhoneType::HOME()
+                ]),
+            ],
+        ]);
     }
 
     /**

@@ -25,7 +25,7 @@ class FromArrayGenerator extends BaseGenerator implements GeneratorVisitor
      */
     public function visit(Entity $entity, GeneratorInterface $class)
     {
-        $class->addMethodFromGenerator($this->generateReadFromMethod($entity));
+        $class->addMethodFromGenerator($this->generateMethod($entity));
     }
 
     /**
@@ -33,7 +33,7 @@ class FromArrayGenerator extends BaseGenerator implements GeneratorVisitor
      *
      * @return string
      */
-    protected function generateReadFromMethod(Entity $entity)
+    protected function generateMethod(Entity $entity)
     {
         $lines   = $this->generateBody($entity);
         $body    = implode(PHP_EOL, $lines);

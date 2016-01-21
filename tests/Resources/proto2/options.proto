@@ -1,6 +1,6 @@
 syntax = "proto2";
 
-package ProtobufTest.Protos.Options;
+package ProtobufCompilerTest.Protos.Options;
 
 import "descriptor.proto";
 

@@ -15,7 +15,7 @@ use Protobuf\Compiler\Generator\Message\ToStreamGenerator;
 use Protobuf\Compiler\Generator\Message\ConstructGenerator;
 use Protobuf\Compiler\Generator\Message\FromArrayGenerator;
 use Protobuf\Compiler\Generator\Message\FromStreamGenerator;
-use Protobuf\Compiler\Generator\Message\AnnotationGenerator;
+use Protobuf\Compiler\Generator\Message\DescriptorGenerator;
 use Protobuf\Compiler\Generator\Message\ExtensionsGenerator;
 use Protobuf\Compiler\Generator\Message\SerializedSizeGenerator;
 
@@ -39,12 +39,12 @@ class MessageGenerator extends BaseGenerator implements EntityVisitor
         parent::__construct($context);
 
         $this->generators = [
-            new AnnotationGenerator($context),
             new ConstructGenerator($context),
             new FieldsGenerator($context),
             new ExtensionsGenerator($context),
             new FromStreamGenerator($context),
             new FromArrayGenerator($context),
+            new DescriptorGenerator($context),
             new ToStreamGenerator($context),
             new WriteToGenerator($context),
             new ReadFromGenerator($context),
