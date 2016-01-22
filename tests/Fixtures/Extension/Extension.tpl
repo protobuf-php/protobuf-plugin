@@ -82,7 +82,7 @@ class Extension implements \Protobuf\Extension
             return $size;
         };
 
-        return self::$habitat = new \Protobuf\Extension\ExtensionField('\\ProtobufCompilerTest\\Protos\\Extension\\Animal', 'habitat', 200, $readCallback, $writeCallback, $sizeCallback);
+        return self::$habitat = new \Protobuf\Extension\ExtensionField('\\ProtobufCompilerTest\\Protos\\Extension\\Animal', 'habitat', 200, $readCallback, $writeCallback, $sizeCallback, __METHOD__);
     }
 
     /**
@@ -127,7 +127,7 @@ class Extension implements \Protobuf\Extension
             return $size;
         };
 
-        return self::$verbose = new \Protobuf\Extension\ExtensionField('\\ProtobufCompilerTest\\Protos\\Extension\\Command', 'verbose', 201, $readCallback, $writeCallback, $sizeCallback);
+        return self::$verbose = new \Protobuf\Extension\ExtensionField('\\ProtobufCompilerTest\\Protos\\Extension\\Command', 'verbose', 201, $readCallback, $writeCallback, $sizeCallback, __METHOD__);
     }
 
 

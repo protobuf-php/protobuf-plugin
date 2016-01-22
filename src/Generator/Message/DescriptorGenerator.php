@@ -60,7 +60,11 @@ class DescriptorGenerator extends BaseGenerator implements GeneratorVisitor
         $fields     = [];
         $extensions = [];
         $descriptor = $entity->getDescriptor();
-        $options    = $this->addIndentation($this->createOptionsValues($entity), 1);
+
+        if ($descriptor->hasOptions()) {
+            $lines   = $this->createOptionsBody($entity);
+            $lines[] = null;
+        }
 
         foreach (($descriptor->getFieldList() ?: []) as $field) {
             $values = $this->generateFieldBody($field);
@@ -87,10 +91,8 @@ class DescriptorGenerator extends BaseGenerator implements GeneratorVisitor
             $lines[] = "    ],";
         }
 
-        if ( ! empty($options)) {
-            $lines[] = "    'options' => \google\protobuf\MessageOptions::fromArray(";
-            $lines   = array_merge($lines, $options);
-            $lines[] = "    ),";
+        if ($descriptor->hasOptions()) {
+            $lines[] = "    'options' => \$options";
         }
 
         $lines[] = "]);";
@@ -144,26 +146,35 @@ class DescriptorGenerator extends BaseGenerator implements GeneratorVisitor
      *
      * @return string[]
      */
-    protected function createOptionsValues(Entity $entity)
+    protected function createOptionsBody(Entity $entity)
     {
         $descriptor = $entity->getDescriptor();
         $values     = [];
-
-        if ( ! $descriptor->hasOptions()) {
-            return $values;
-        }
+        $lines      = [];
 
         $options    = $descriptor->getOptions();
         $extensions = $options->extensions();
 
+        $lines[] = '$options = \google\protobuf\MessageOptions::fromArray([';
+        $lines   = array_merge($lines, $this->generateArrayLines($values));
+        $lines[] = ']);';
+        $lines[] = null;
+
         for ($extensions->rewind(); $extensions->valid(); $extensions->next()) {
             $extension = $extensions->current();
-            $value     = $extensions->getInfo();
-            $name      = $extension->getName();
+            $info      = $extensions->getInfo();
 
-            // $values[$name] = var_export($value, true);
+            $method = '\\' . $extension->getMethod();
+            $value  = var_export($info, true);
+            $name   = $extension->getName();
+
+            if (is_object($info)) {
+                $value = '\\' . $value;
+            }
+
+            $lines[] = '$options->extensions()->put(' . $method . '(), ' . $value . ');';
         }
 
-        return $this->generateArrayLines($values);
+        return $lines;
     }
 }

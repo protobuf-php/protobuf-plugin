@@ -58,7 +58,8 @@ class ExtensionsGenerator extends BaseGenerator implements GeneratorVisitor
             $tag,
             '$readCallback',
             '$writeCallback',
-            '$sizeCallback'
+            '$sizeCallback',
+            '__METHOD__'
         ];
 
         $body[] = 'if (self::$' . $name . ' !== null) {';
@@ -129,7 +130,7 @@ class ExtensionsGenerator extends BaseGenerator implements GeneratorVisitor
                 'tags'             => [
                     [
                         'name'        => 'return',
-                        'description' => '\Protobuf\Extension',
+                        'description' => '\Protobuf\Extension\ExtensionField',
                     ]
                 ]
             ]

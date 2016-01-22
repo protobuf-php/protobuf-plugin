@@ -91,7 +91,7 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
     /**
      * Extension field : animal
      *
-     * @return \Protobuf\Extension
+     * @return \Protobuf\Extension\ExtensionField
      */
     public static function animal()
     {
@@ -141,7 +141,7 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
             return $size;
         };
 
-        return self::$animal = new \Protobuf\Extension\ExtensionField('\\ProtobufCompilerTest\\Protos\\Extension\\Animal', 'animal', 101, $readCallback, $writeCallback, $sizeCallback);
+        return self::$animal = new \Protobuf\Extension\ExtensionField('\\ProtobufCompilerTest\\Protos\\Extension\\Animal', 'animal', 101, $readCallback, $writeCallback, $sizeCallback, __METHOD__);
     }
 
     /**
