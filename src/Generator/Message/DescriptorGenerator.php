@@ -172,7 +172,7 @@ class DescriptorGenerator extends BaseGenerator implements GeneratorVisitor
                 $value = '\\' . $value;
             }
 
-            $lines[] = '$options->extensions()->put(' . $method . '(), ' . $value . ');';
+            $lines[] = '$options->extensions()->add(' . $method . '(), ' . $value . ');';
         }
 
         return $lines;

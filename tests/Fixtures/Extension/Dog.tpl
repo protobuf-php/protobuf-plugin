@@ -271,7 +271,7 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
             $extension  = $extensions ? $extensions->findByNumber(__CLASS__, $tag) : null;
 
             if ($extension !== null) {
-                $this->extensions()->put($extension, $extension->readFrom($context, $wire));
+                $this->extensions()->add($extension, $extension->readFrom($context, $wire));
 
                 continue;
             }
@@ -314,6 +314,18 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
     public function clear()
     {
         $this->bones_buried = null;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function merge(\Protobuf\Message $message)
+    {
+        if ( ! $message instanceof \ProtobufCompilerTest\Protos\Extension\Dog) {
+            throw new \InvalidArgumentException(sprintf('Argument 1 passed to %s must be a %s, %s given', __METHOD__, __CLASS__, get_class($message)));
+        }
+
+        $this->bones_buried = $message->bones_buried ?: $this->bones_buried;
     }
 
 

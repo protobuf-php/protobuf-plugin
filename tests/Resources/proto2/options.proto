@@ -9,6 +9,7 @@ import "descriptor.proto";
 message MyOption
 {
   optional string value = 1;
+  optional string label = 2;
 }
 
 extend google.protobuf.FileOptions
@@ -41,6 +42,7 @@ message MyMessage
 {
   option (my_message_option)           = 1234;
   option (my_message_option_msg).value = "1234";
+  option (my_message_option_msg).label = "one,two,three,four";
 
   optional int32  foo = 1 [(my_field_option) = 4.5];
   optional string bar = 2;

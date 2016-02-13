@@ -75,7 +75,7 @@ while ($limit === null || $stream->tell() < $limit) {
     $extension  = $extensions ? $extensions->findByNumber(__CLASS__, $tag) : null;
 
     if ($extension !== null) {
-        $this->extensions()->put($extension, $extension->readFrom($context, $wire));
+        $this->extensions()->add($extension, $extension->readFrom($context, $wire));
 
         continue;
     }

@@ -8,6 +8,7 @@ use Protobuf\Compiler\Entity;
 use Protobuf\Compiler\Context;
 
 use Protobuf\Compiler\Generator\Message\ClearGenerator;
+use Protobuf\Compiler\Generator\Message\MergeGenerator;
 use Protobuf\Compiler\Generator\Message\FieldsGenerator;
 use Protobuf\Compiler\Generator\Message\WriteToGenerator;
 use Protobuf\Compiler\Generator\Message\ReadFromGenerator;
@@ -50,6 +51,7 @@ class MessageGenerator extends BaseGenerator implements EntityVisitor
             new ReadFromGenerator($context),
             new SerializedSizeGenerator($context),
             new ClearGenerator($context),
+            new MergeGenerator($context),
         ];
     }
 

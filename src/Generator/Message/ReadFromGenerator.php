@@ -121,7 +121,7 @@ class ReadFromGenerator extends BaseGenerator implements GeneratorVisitor
         $body[] = '$extension  = $extensions ? $extensions->findByNumber(__CLASS__, $tag) : null;';
         $body[] = null;
         $body[] = 'if ($extension !== null) {';
-        $body[] = '    $this->extensions()->put($extension, $extension->readFrom($context, $wire));';
+        $body[] = '    $this->extensions()->add($extension, $extension->readFrom($context, $wire));';
         $body[] = null;
         $body[] = '    continue;';
         $body[] = '}';
