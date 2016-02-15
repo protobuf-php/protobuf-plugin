@@ -1151,21 +1151,21 @@ class Simple extends \Protobuf\AbstractMessage
             throw new \InvalidArgumentException(sprintf('Argument 1 passed to %s must be a %s, %s given', __METHOD__, __CLASS__, get_class($message)));
         }
 
-        $this->double = $message->double ?: $this->double;
-        $this->float = $message->float ?: $this->float;
-        $this->int64 = $message->int64 ?: $this->int64;
-        $this->uint64 = $message->uint64 ?: $this->uint64;
-        $this->int32 = $message->int32 ?: $this->int32;
-        $this->fixed64 = $message->fixed64 ?: $this->fixed64;
-        $this->fixed32 = $message->fixed32 ?: $this->fixed32;
-        $this->bool = $message->bool ?: $this->bool;
-        $this->string = $message->string ?: $this->string;
-        $this->bytes = $message->bytes ?: $this->bytes;
-        $this->uint32 = $message->uint32 ?: $this->uint32;
-        $this->sfixed32 = $message->sfixed32 ?: $this->sfixed32;
-        $this->sfixed64 = $message->sfixed64 ?: $this->sfixed64;
-        $this->sint32 = $message->sint32 ?: $this->sint32;
-        $this->sint64 = $message->sint64 ?: $this->sint64;
+        $this->double = ($message->double !== null) ? $message->double : $this->double;
+        $this->float = ($message->float !== null) ? $message->float : $this->float;
+        $this->int64 = ($message->int64 !== null) ? $message->int64 : $this->int64;
+        $this->uint64 = ($message->uint64 !== null) ? $message->uint64 : $this->uint64;
+        $this->int32 = ($message->int32 !== null) ? $message->int32 : $this->int32;
+        $this->fixed64 = ($message->fixed64 !== null) ? $message->fixed64 : $this->fixed64;
+        $this->fixed32 = ($message->fixed32 !== null) ? $message->fixed32 : $this->fixed32;
+        $this->bool = ($message->bool !== null) ? $message->bool : $this->bool;
+        $this->string = ($message->string !== null) ? $message->string : $this->string;
+        $this->bytes = ($message->bytes !== null) ? $message->bytes : $this->bytes;
+        $this->uint32 = ($message->uint32 !== null) ? $message->uint32 : $this->uint32;
+        $this->sfixed32 = ($message->sfixed32 !== null) ? $message->sfixed32 : $this->sfixed32;
+        $this->sfixed64 = ($message->sfixed64 !== null) ? $message->sfixed64 : $this->sfixed64;
+        $this->sint32 = ($message->sint32 !== null) ? $message->sint32 : $this->sint32;
+        $this->sint64 = ($message->sint64 !== null) ? $message->sint64 : $this->sint64;
     }
 
 

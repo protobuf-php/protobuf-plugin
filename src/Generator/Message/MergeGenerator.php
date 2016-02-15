@@ -91,8 +91,8 @@ class MergeGenerator extends BaseGenerator implements GeneratorVisitor
     {
         $lines     = [];
         $fieldName = $field->getName();
-        $format    = '$this->%s = $message->%s ?: $this->%s;';
-        $lines[]   = sprintf($format, $fieldName, $fieldName, $fieldName);
+        $format    = '$this->%s = ($message->%s !== null) ? $message->%s : $this->%s;';
+        $lines[]   = sprintf($format, $fieldName, $fieldName, $fieldName, $fieldName);
 
         return $lines;
     }

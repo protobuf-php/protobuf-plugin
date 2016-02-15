@@ -64,6 +64,23 @@ class MergeTest extends TestCase
         $this->assertSame(-123456789123456789, $simple2->getSfixed64());
     }
 
+    public function testSimpleMessageMergeNullComparison()
+    {
+        $simple1 = new Simple();
+        $simple2 = new Simple();
+        $bytes   = Stream::wrap("bar");
+
+        $simple1->setBool(false);
+        $simple1->setFloat(0.0);
+        $simple1->setUint32(0);
+
+        $simple2->merge($simple1);
+
+        $this->assertSame(false, $simple2->getBool());
+        $this->assertSame(0.0, $simple2->getFloat());
+        $this->assertSame(0, $simple2->getUint32());
+    }
+
     /**
      * @expectedException \InvalidArgumentException
      * @expectedExceptionMessage Argument 1 passed to ProtobufCompilerTest\Protos\Simple::merge must be a ProtobufCompilerTest\Protos\Simple, ProtobufCompilerTest\Protos\Person given

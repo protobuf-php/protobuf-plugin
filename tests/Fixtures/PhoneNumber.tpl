@@ -334,8 +334,8 @@ class PhoneNumber extends \Protobuf\AbstractMessage
             throw new \InvalidArgumentException(sprintf('Argument 1 passed to %s must be a %s, %s given', __METHOD__, __CLASS__, get_class($message)));
         }
 
-        $this->number = $message->number ?: $this->number;
-        $this->type = $message->type ?: $this->type;
+        $this->number = ($message->number !== null) ? $message->number : $this->number;
+        $this->type = ($message->type !== null) ? $message->type : $this->type;
     }
 
 

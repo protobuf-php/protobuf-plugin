@@ -325,7 +325,7 @@ class Dog extends \Protobuf\AbstractMessage implements \Protobuf\Extension
             throw new \InvalidArgumentException(sprintf('Argument 1 passed to %s must be a %s, %s given', __METHOD__, __CLASS__, get_class($message)));
         }
 
-        $this->bones_buried = $message->bones_buried ?: $this->bones_buried;
+        $this->bones_buried = ($message->bones_buried !== null) ? $message->bones_buried : $this->bones_buried;
     }
 
 

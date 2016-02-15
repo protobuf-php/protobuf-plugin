@@ -66,5 +66,6 @@ class MessageDescriptorTest extends TestCase
         $this->assertInstanceOf(Options\MyOption::CLASS, $myMessageOptionMsg);
         $this->assertSame('one,two,three,four', $myMessageOptionMsg->getLabel());
         $this->assertSame('1234', $myMessageOptionMsg->getValue());
+        $this->assertSame(0, $myMessageOptionMsg->getVal());
     }
 }

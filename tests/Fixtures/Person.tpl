@@ -494,10 +494,10 @@ class Person extends \Protobuf\AbstractMessage
             throw new \InvalidArgumentException(sprintf('Argument 1 passed to %s must be a %s, %s given', __METHOD__, __CLASS__, get_class($message)));
         }
 
-        $this->name = $message->name ?: $this->name;
-        $this->id = $message->id ?: $this->id;
-        $this->email = $message->email ?: $this->email;
-        $this->phone = $message->phone ?: $this->phone;
+        $this->name = ($message->name !== null) ? $message->name : $this->name;
+        $this->id = ($message->id !== null) ? $message->id : $this->id;
+        $this->email = ($message->email !== null) ? $message->email : $this->email;
+        $this->phone = ($message->phone !== null) ? $message->phone : $this->phone;
     }
 
 
