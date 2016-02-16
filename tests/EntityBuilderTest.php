@@ -88,7 +88,7 @@ class EntityBuilderTest extends TestCase
                 ]
             ],
             'extensions' => [
-                200  => ['extension', Field::TYPE_STRING, Field::LABEL_OPTIONAL, '.Protos.Extendee']
+                200  => ['extension', Field::TYPE_STRING, Field::LABEL_OPTIONAL, '.google.protobuf.MessageOptions']
             ],
             'enums' => [
                 [
@@ -121,6 +121,7 @@ class EntityBuilderTest extends TestCase
         $this->assertEquals('Protos.SearchService', $entities[3]->getClass());
         $this->assertEquals('Protos.EnumType', $entities[4]->getClass());
         $this->assertEquals('Protos.Extension', $entities[5]->getClass());
+        $this->assertTrue($entities[5]->isProtobufExtension());
 
         $this->assertEquals(Entity::TYPE_MESSAGE, $entities[0]->getType());
         $this->assertEquals(Entity::TYPE_MESSAGE, $entities[1]->getType());

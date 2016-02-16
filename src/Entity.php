@@ -59,6 +59,11 @@ class Entity
     protected $fileToGenerate = false;
 
     /**
+     * @var bool
+     */
+    protected $protobufExtension = false;
+
+    /**
      * @param string                               $type
      * @param string                               $name
      * @param \Protobuf\Message                    $descriptor
@@ -193,6 +198,22 @@ class Entity
     public function setFileToGenerate($flag)
     {
         $this->fileToGenerate = $flag;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isProtobufExtension()
+    {
+        return $this->protobufExtension;
+    }
+
+    /**
+     * @param bool $flag
+     */
+    public function setProtobufExtension($flag)
+    {
+        $this->protobufExtension = $flag;
     }
 
     /**

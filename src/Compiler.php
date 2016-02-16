@@ -57,7 +57,10 @@ class Compiler
         $entities   = $context->getEntities();
         $options    = $context->getOptions();
         $generator  = new Generator($context);
-        $regenerate = false;
+
+        // whether or not it will renegerate classes with new extensions
+        $regenerate   = false;
+        $hasExtension = $context->hasProtobufExtension();
 
         // Run each entity
         foreach ($entities as $key => $entity) {
@@ -76,39 +79,17 @@ class Compiler
             $generator->visit($entity);
 
             $file    = new File();
-            $type    = $entity->getType();
             $path    = $entity->getPath();
             $content = $entity->getContent();
-            $class   = $entity->getNamespacedName();
-
-            if ( ! class_exists($class) && ! interface_exists($class)) {
-
-                $this->logger->info(sprintf('Loading class "%s"', $class));
-
-                $tempname = tempnam(sys_get_temp_dir(), 'proto') . '.php';
-
-                file_put_contents($tempname, $content);
-
-                include($tempname);
-                @unlink($tempname);
-
-                if ($type === Entity::TYPE_EXTENSION) {
-
-                    $this->logger->info(sprintf('Registering extension "%s"', $class));
-
-                    $config   = $this->config;
-                    $registry = $config->getExtensionRegistry();
-
-                    $class::registerAllExtensions($registry);
-
-                    $regenerate = true;
-                }
-            }
 
             $file->setName($path);
             $file->setContent($content);
 
             $response->addFile($file);
+
+            if ($hasExtension && $this->loadEntityClass($entity)) {
+                $regenerate = true;
+            }
         }
 
         if ($regenerate) {
@@ -125,6 +106,45 @@ class Compiler
 
         // Finally serialize the response object
         return $response->toStream($this->config);
+    }
+
+    /**
+     * @param \Protobuf\Compiler\Entity $entity
+     *
+     * @return bool
+     */
+    protected function loadEntityClass(Entity $entity)
+    {
+        $type    = $entity->getType();
+        $content = $entity->getContent();
+        $class   = $entity->getNamespacedName();
+
+        if (class_exists($class) || interface_exists($class)) {
+            return false;
+        }
+
+        $this->logger->info(sprintf('Loading class "%s"', $class));
+
+        $tempname = tempnam(sys_get_temp_dir(), 'proto') . '.php';
+
+        file_put_contents($tempname, $content);
+
+        include($tempname);
+        @unlink($tempname);
+
+        if ($type === Entity::TYPE_EXTENSION) {
+
+            $this->logger->info(sprintf('Registering extension "%s"', $class));
+
+            $config   = $this->config;
+            $registry = $config->getExtensionRegistry();
+
+            $class::registerAllExtensions($registry);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**

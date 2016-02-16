@@ -39,6 +39,20 @@ class Context
     }
 
     /**
+     * @return bool
+     */
+    public function hasProtobufExtension()
+    {
+        foreach ($this->entities as $entity) {
+            if ($entity->isProtobufExtension()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @return \Protobuf\Compiler\Options
      */
     public function getOptions()

@@ -137,6 +137,40 @@ class EntityBuilder
     }
 
     /**
+     * @param \google\protobuf\FieldDescriptorProto $fieldDescriptor
+     *
+     * @return boolean
+     */
+    protected function isProtobufExtension(FieldDescriptorProto $fieldDescriptor)
+    {
+        if ( ! $fieldDescriptor->hasExtendee()) {
+            return false;
+        }
+
+        $extendee = trim($fieldDescriptor->getExtendee(), '.');
+        $package  = 'google.protobuf';
+        $length   = strlen($package);
+
+        return (substr($extendee, 0, $length) === $package);
+    }
+
+    /**
+     * @param \Traversable<\google\protobuf\FieldDescriptorProto> $descriptors
+     *
+     * @return boolean
+     */
+    protected function containsProtobufExtension(\Traversable  $descriptors)
+    {
+        foreach ($descriptors as $descriptor) {
+            if ($this->isProtobufExtension($descriptor)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @param \google\protobuf\FileDescriptorProto $fileDescriptor
      * @param \Traversable                         $messages
      * @param string                               $parent
@@ -217,6 +251,10 @@ class EntityBuilder
         $type   = Entity::TYPE_EXTENSION;
         $entity = new Entity($type, $name, $fileDescriptor, $fileDescriptor, $parent);
 
+        if ($fileDescriptor->hasExtensionList() && $this->containsProtobufExtension($fileDescriptor->getExtensionList())) {
+            $entity->setProtobufExtension(true);
+        }
+
         return $entity;
     }
 
@@ -264,6 +302,10 @@ class EntityBuilder
         $type   = Entity::TYPE_MESSAGE;
         $name   = $messageDescriptor->getName();
         $entity = new Entity($type, $name, $messageDescriptor, $fileDescriptor, $parent);
+
+        if ($messageDescriptor->hasExtensionList() && $this->containsProtobufExtension($messageDescriptor->getExtensionList())) {
+            $entity->setProtobufExtension(true);
+        }
 
         return $entity;
     }
