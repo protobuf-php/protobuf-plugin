@@ -88,7 +88,13 @@ class ReadFieldStatementGenerator extends BaseGenerator
             $body[] = '}';
             $body[] = null;
             $body[] = 'while ($stream->tell() < $innerLimit) {';
-            $body[] = '    ' . $variable . '->add(' . $this->generateReadScalarStatement($type->value()) . ');';
+
+            if ($type === Type::TYPE_ENUM()) {
+                $body[] = '    '.$variable.'->add('.$reference.'::valueOf('.$this->generateReadScalarStatement($type->value()).'));';
+            } else {
+                $body[] = '    '.$variable.'->add('.$this->generateReadScalarStatement($type->value()).');';
+            }
+
             $body[] = '}';
             $body[] = null;
             $body[] = $breakSttm;
