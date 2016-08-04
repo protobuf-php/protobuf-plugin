@@ -80,6 +80,10 @@ class ReadFieldStatementGenerator extends BaseGenerator
         }
 
         if ($rule === Label::LABEL_REPEATED() && $isPack) {
+            $readSttm = ($type === Type::TYPE_ENUM())
+                ? $reference . '::valueOf(' . $this->generateReadScalarStatement($type->value()) .')'
+                : $this->generateReadScalarStatement($type->value());
+
             $body[] = '$innerSize  = $reader->readVarint($stream);';
             $body[] = '$innerLimit = $stream->tell() + $innerSize;';
             $body[] = null;
@@ -88,7 +92,7 @@ class ReadFieldStatementGenerator extends BaseGenerator
             $body[] = '}';
             $body[] = null;
             $body[] = 'while ($stream->tell() < $innerLimit) {';
-            $body[] = '    ' . $variable . '->add(' . $this->generateReadScalarStatement($type->value()) . ');';
+            $body[] = '    ' . $variable . '->add(' . $readSttm . ');';
             $body[] = '}';
             $body[] = null;
             $body[] = $breakSttm;

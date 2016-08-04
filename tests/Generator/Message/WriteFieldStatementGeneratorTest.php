@@ -184,6 +184,58 @@ CODE;
         $this->assertEquals($expected, implode(PHP_EOL, $actual));
     }
 
+    public function testGenerateWritePackedEnumRepeatedStatement()
+    {
+        $options = new FieldOptions();
+        $context = $this->createContext([
+            [
+                'name'    => 'simple.proto',
+                'package' => 'ProtobufCompilerTest.Protos',
+                'values'  => [
+                    'messages' => [
+                        [
+                            'name'   => 'Simple',
+                            'fields' => [
+                                1  => ['status', Field::TYPE_ENUM, Field::LABEL_REPEATED, 'ProtobufCompilerTest.Protos.Type']
+                            ]
+                        ],
+                        [
+                            'name'   => 'Type',
+                            'fields' => []
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+
+        $entity    = $context->getEntity('ProtobufCompilerTest.Protos.Simple');
+        $generator = new WriteFieldStatementGenerator($context);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
+
+        $options->setPacked(true);
+        $field->setOptions($options);
+
+        $actual   = $generator->generateFieldWriteStatement($entity, $field);
+        $expected = <<<'CODE'
+$innerSize   = 0;
+$calculator  = $sizeContext->getSizeCalculator();
+
+foreach ($this->status as $val) {
+    $innerSize += $calculator->computeVarintSize($val->value());
+}
+
+$writer->writeVarint($stream, 10);
+$writer->writeVarint($stream, $innerSize);
+
+foreach ($this->status as $val) {
+    $writer->writeVarint($stream, $val->value());
+}
+CODE;
+
+        $this->assertEquals($expected, implode(PHP_EOL, $actual));
+    }
+
     /**
      * @expectedException InvalidArgumentException
      * @expectedExceptionMessage Unknown field type : -123

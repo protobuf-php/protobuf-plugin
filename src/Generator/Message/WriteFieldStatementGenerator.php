@@ -52,18 +52,22 @@ class WriteFieldStatementGenerator extends BaseGenerator
         $key  = WireFormat::getFieldKey($tag, $wire);
 
         if ($rule === Label::LABEL_REPEATED() && $isPack) {
+            $itemValSttm = ($type === Type::TYPE_ENUM())
+                ? '$val->value()'
+                : '$val';
+
             $body[] = '$innerSize   = 0;';
             $body[] = '$calculator  = $sizeContext->getSizeCalculator();';
             $body[] = null;
             $body[] = 'foreach (' . $variable . ' as $val) {';
-            $body[] = '    $innerSize += ' . $this->generateValueSizeStatement($type->value(), '$val') . ';';
+            $body[] = '    $innerSize += ' . $this->generateValueSizeStatement($type->value(), $itemValSttm) . ';';
             $body[] = '}';
             $body[] = null;
             $body[] = '$writer->writeVarint($stream, ' . $key . ');';
             $body[] = '$writer->writeVarint($stream, $innerSize);';
             $body[] = null;
             $body[] = 'foreach (' . $variable . ' as $val) {';
-            $body[] = '    ' . $this->generateWriteScalarStatement($type->value(), '$val') . ';';
+            $body[] = '    ' . $this->generateWriteScalarStatement($type->value(), $itemValSttm) . ';';
             $body[] = '}';
 
             return $body;

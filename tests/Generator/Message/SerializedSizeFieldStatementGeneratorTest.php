@@ -160,4 +160,52 @@ CODE;
 
         $this->assertEquals($expected, implode(PHP_EOL, $actual));
     }
+
+    public function testGenerateEnumPackadRepeatedFieldSizeStatement()
+    {
+        $options = new FieldOptions();
+        $context = $this->createContext([
+            [
+                'name'    => 'simple.proto',
+                'package' => 'ProtobufCompilerTest.Protos',
+                'values'  => [
+                    'messages' => [
+                        [
+                            'name'   => 'Simple',
+                            'fields' => [
+                                1  => ['status', Field::TYPE_ENUM, Field::LABEL_REPEATED, 'ProtobufCompilerTest.Protos.Type']
+                            ]
+                        ],
+                        [
+                            'name'   => 'Type',
+                            'fields' => []
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+
+        $entity    = $context->getEntity('ProtobufCompilerTest.Protos.Simple');
+        $generator = new SerializedSizeFieldStatementGenerator($context);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
+
+        $options->setPacked(true);
+        $field->setOptions($options);
+
+        $actual   = $generator->generateFieldSizeStatement($entity, $field);
+        $expected = <<<'CODE'
+$innerSize = 0;
+
+foreach ($this->status as $val) {
+    $innerSize += $calculator->computeVarintSize($val->value());
+}
+
+$size += 1;
+$size += $innerSize;
+$size += $calculator->computeVarintSize($innerSize);
+CODE;
+
+        $this->assertEquals($expected, implode(PHP_EOL, $actual));
+    }
 }

@@ -54,10 +54,14 @@ class SerializedSizeFieldStatementGenerator extends BaseGenerator
         $keySize = $this->getSizeCalculator()->computeVarintSize($key);
 
         if ($rule === Label::LABEL_REPEATED() && $isPack) {
+            $itemValSttm = ($type === Type::TYPE_ENUM())
+                ? '$val->value()'
+                : '$val';
+
             $body[] = '$innerSize = 0;';
             $body[] = null;
             $body[] = 'foreach (' . $variable . ' as $val) {';
-            $body[] = '    $innerSize += ' . $this->generateValueSizeStatement($type->value(), '$val') . ';';
+            $body[] = '    $innerSize += ' . $this->generateValueSizeStatement($type->value(), $itemValSttm) . ';';
             $body[] = '}';
             $body[] = null;
             $body[] = '$size += ' . $keySize . ';';

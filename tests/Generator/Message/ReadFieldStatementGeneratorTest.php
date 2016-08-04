@@ -186,6 +186,57 @@ CODE;
         $this->assertEquals($expected, implode(PHP_EOL, $actual));
     }
 
+    public function testGenerateReadPackedEnumStatement()
+    {
+        $options = new FieldOptions();
+        $context = $this->createContext([
+            [
+                'name'    => 'simple.proto',
+                'package' => 'ProtobufCompilerTest.Protos',
+                'values'  => [
+                    'messages' => [
+                        [
+                            'name'   => 'Simple',
+                            'fields' => [
+                                1  => ['status', Field::TYPE_ENUM, Field::LABEL_REPEATED, 'ProtobufCompilerTest.Protos.Type']
+                            ]
+                        ],
+                        [
+                            'name'   => 'Type',
+                            'fields' => []
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+
+        $generator = new ReadFieldStatementGenerator($context);
+        $entity    = $context->getEntity($this->messageClass);
+        $descritor = $entity->getDescriptor();
+        $field     = $descritor->getFieldList()[0];
+
+        $options->setPacked(true);
+        $field->setOptions($options);
+
+        $actual   = $generator->generateFieldReadStatement($entity, $field);
+        $expected = <<<'CODE'
+$innerSize  = $reader->readVarint($stream);
+$innerLimit = $stream->tell() + $innerSize;
+
+if ($this->status === null) {
+    $this->status = new \Protobuf\EnumCollection();
+}
+
+while ($stream->tell() < $innerLimit) {
+    $this->status->add(\ProtobufCompilerTest\Protos\Type::valueOf($reader->readVarint($stream)));
+}
+
+continue;
+CODE;
+
+        $this->assertEquals($expected, implode(PHP_EOL, $actual));
+    }
+
     public function testGenerateReadMessageStatement()
     {
         return $this->createContext([
