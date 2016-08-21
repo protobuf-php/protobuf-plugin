@@ -60,13 +60,16 @@ while ($limit === null || $stream->tell() < $limit) {
     }
 
     if ($tag === 1) {
-        \Protobuf\WireFormat::assertWireType($wire, 5);
+        $innerSize  = $reader->readVarint($stream);
+        $innerLimit = $stream->tell() + $innerSize;
 
         if ($this->lines === null) {
             $this->lines = new \Protobuf\ScalarCollection();
         }
 
-        $this->lines->add($reader->readVarint($stream));
+        while ($stream->tell() < $innerLimit) {
+            $this->lines->add($reader->readVarint($stream));
+        }
 
         continue;
     }

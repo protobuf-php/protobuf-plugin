@@ -138,13 +138,16 @@ CODE;
 
         $actual   = $this->invokeMethod($generator, 'generateFieldReadStatement', [$entity, $field]);
         $expected = <<<'CODE'
-\Protobuf\WireFormat::assertWireType($wire, 14);
+$innerSize  = $reader->readVarint($stream);
+$innerLimit = $stream->tell() + $innerSize;
 
 if ($this->status === null) {
     $this->status = new \Protobuf\EnumCollection();
 }
 
-$this->status->add(\ProtobufCompilerTest\Protos\Type::valueOf($reader->readVarint($stream)));
+while ($stream->tell() < $innerLimit) {
+    $this->status->add(\ProtobufCompilerTest\Protos\Type::valueOf($reader->readVarint($stream)));
+}
 
 continue;
 CODE;
@@ -371,5 +374,36 @@ CODE;
         $generator = new ReadFieldStatementGenerator($context);
 
         $this->invokeMethod($generator, 'generateReadScalarStatement', [-123]);
+    }
+
+    public function testIsDefaultPacked()
+    {
+        $context   = $this->createMessagesContext([]);
+        $generator = new ReadFieldStatementGenerator($context);
+
+        $this->assertTrue(
+            $this->invokeMethod($generator, 'isDefaultPacked',
+                [
+                    FieldDescriptorProto\Label::LABEL_REPEATED(),
+                    FieldDescriptorProto\Type::TYPE_UINT32()
+                ]
+            )
+        );
+        $this->assertFalse(
+            $this->invokeMethod($generator, 'isDefaultPacked',
+                [
+                    FieldDescriptorProto\Label::LABEL_OPTIONAL(),
+                    FieldDescriptorProto\Type::TYPE_STRING()
+                ]
+            )
+        );
+        $this->assertFalse(
+            $this->invokeMethod($generator, 'isDefaultPacked',
+                [
+                    FieldDescriptorProto\Label::LABEL_REPEATED(),
+                    FieldDescriptorProto\Type::TYPE_STRING()
+                ]
+            )
+        );
     }
 }
