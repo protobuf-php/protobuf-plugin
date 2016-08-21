@@ -211,14 +211,14 @@ class ReadFieldStatementGenerator extends BaseGenerator
     /**
      * check if field is packed by default
      *
-     * @param Rule $rule
-     * @param Type $type
+     * @param Label $label
+     * @param Type  $type
      *
      * @return bool
      */
-    protected function isDefaultPacked(Rule $rule, Type $type)
+    protected function isDefaultPacked(Label $label, Type $type)
     {
-        return $rule === Label::LABEL_REPEATED() && in_array($type, [
+        return $label === Label::LABEL_REPEATED() && in_array($type, [
             Type::TYPE_FIXED32(),
             Type::TYPE_FIXED64(),
             Type::TYPE_INT32(),
