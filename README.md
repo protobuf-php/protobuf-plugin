@@ -32,7 +32,7 @@ $ brew install protobuf
 $ sudo apt-get install -y protobuf
 ```
 
-Make sure you hame ```protoc``` available in the user's path:
+Make sure you have ```protoc``` available in the user's path:
 ```console
 $ protoc --version
 $ # libprotoc 2.6.1
