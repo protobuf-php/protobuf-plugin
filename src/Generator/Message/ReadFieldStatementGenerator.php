@@ -64,7 +64,7 @@ class ReadFieldStatementGenerator extends BaseGenerator
         $rule      = $field->getLabel();
         $tag       = $field->getNumber();
         $options   = $field->getOptions();
-        $isPack    = $options ? $options->getPacked() : false;
+        $isPack    = $options ? $options->getPacked() : $this->isDefaultPacked($rule, $type);
         $variable  = $this->targetVar ?: '$this->' . $name;
         $breakSttm = $this->getBreakStatement($variable);
 
@@ -206,6 +206,31 @@ class ReadFieldStatementGenerator extends BaseGenerator
         }
 
         throw new InvalidArgumentException('Unknown field type : ' . $type);
+    }
+
+    /**
+     * check if field is packed by default
+     *
+     * @param Label $label
+     * @param Type  $type
+     *
+     * @return bool
+     */
+    protected function isDefaultPacked(Label $label, Type $type)
+    {
+        return $label === Label::LABEL_REPEATED() && in_array($type, [
+            Type::TYPE_FIXED32(),
+            Type::TYPE_FIXED64(),
+            Type::TYPE_INT32(),
+            Type::TYPE_INT64(),
+            Type::TYPE_SFIXED32(),
+            Type::TYPE_SFIXED64(),
+            Type::TYPE_UINT32(),
+            Type::TYPE_UINT64(),
+            Type::TYPE_FLOAT(),
+            Type::TYPE_DOUBLE(),
+            Type::TYPE_ENUM(),
+        ]);
     }
 
     /**
