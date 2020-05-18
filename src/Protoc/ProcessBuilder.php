@@ -7,7 +7,6 @@ use RuntimeException;
 use InvalidArgumentException;
 use UnexpectedValueException;
 use Symfony\Component\Process\Process;
-use Symfony\Component\Process\ProcessBuilder as SymfonyProcessBuilder;
 
 /**
  * Protoc Process Builder
@@ -115,21 +114,22 @@ class ProcessBuilder
             throw new InvalidArgumentException('Proto file list cannot be empty.');
         }
 
-        $builder = new SymfonyProcessBuilder();
         $outDir  = $this->getRealPath($outPath);
         $include = $this->getRealPaths($includeDirs);
         $protos  = $this->getRealPaths($protosFiles, true);
 
-        $builder->setPrefix($this->protoc);
+        $commandLine = "";
 
-        $builder->add(sprintf('--plugin=protoc-gen-php=%s', $this->plugin));
+        $commandLine .= $this->protoc;
+
+        $commandLine .= " ".sprintf('--plugin=protoc-gen-php=%s', $this->plugin);
 
         foreach ($include as $i) {
-            $builder->add(sprintf('--proto_path=%s', $i));
+            $commandLine .= " ".sprintf('--proto_path=%s', $i);
         }
 
         if ($this->includeDescriptors) {
-            $builder->add(sprintf('--proto_path=%s', $this->findDescriptorsPath()));
+            $commandLine .= " ".sprintf('--proto_path=%s', $this->findDescriptorsPath());
         }
 
         // Protoc will pass custom arguments to the plugin if they are given
@@ -138,14 +138,16 @@ class ProcessBuilder
             ? http_build_query($parameters, '', '&') . ':' . $outDir
             : $outDir;
 
-        $builder->add(sprintf('--php_out=%s', $out));
+        $commandLine .= " ".sprintf('--php_out=%s', $out);
 
         // Add the chosen proto files to generate
         foreach ($protos as $proto) {
-            $builder->add($proto);
+            $commandLine .= " ".$proto;
         }
 
-        return $builder->getProcess();
+        $builder = new Process($commandLine);
+
+        return $builder;
     }
 
     /**
